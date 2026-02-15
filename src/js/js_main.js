@@ -3321,6 +3321,10 @@ export function fn_on_ready() {
 			js_map3d.fn_focusUnit(p_andruavUnit);
 		});
 
+		js_eventEmitter.fn_subscribe(js_event.EE_unitHighlighted, this, function (me, p_andruavUnit) {
+			js_map3d.fn_focusUnit(p_andruavUnit);
+		});
+
 		$('#gimbaldiv').find('#btnpitchm').on('click', function () {
 			const p = $('#div_video_view').attr('partyID');
 			const p_andruavUnit = js_globals.m_andruavUnitList.fn_getUnit(p);
