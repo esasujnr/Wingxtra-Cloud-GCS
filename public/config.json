@@ -57,20 +57,8 @@
     "CONST_LANGUAGE": {
         "ENABLED_LANGUAGES": [
             {
-                "code": "ar",
-                "label": "عربى",
-                "className": "rtl"
-            },
-            {
                 "code": "en",
                 "label": "English",
-                "className": ""
-            },
-            { "code": "fr", "label": "Français", "className": "" },
-            { "code": "es", "label": "Español", "className": "" },
-            {
-                "code": "ru",
-                "label": "Русский",
                 "className": ""
             }
         ],
