@@ -1463,3 +1463,61 @@ div#displays
   padding: 0 8px;
   font-weight: 900;
 }
+
+/* Cockpit-like top indicators */
+#main_btn_group {
+  position: static;
+}
+
+#vehicle_alert_space.css_vehicle_alert_space {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  min-width: 360px;
+  text-align: center;
+}
+
+#main_btn_group .css_cockpit_datetime {
+  position: fixed;
+  top: 10px;
+  right: 90px;
+  z-index: 1201;
+  background: rgba(9, 22, 38, 0.92);
+  border: 1px solid #1f4a6d;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+/* Map overlays */
+.css_map_overlay_left_tools,
+.css_map_overlay_right_tools {
+  position: absolute;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.css_map_overlay_left_tools {
+  top: 72px;
+  left: 16px;
+}
+
+.css_map_overlay_right_tools {
+  top: 72px;
+  right: 16px;
+  align-items: flex-end;
+}
+
+.css_map_overlay_left_tools .btn,
+.css_map_overlay_right_tools .btn {
+  pointer-events: auto;
+  min-width: 120px;
+}
+
+#btn_missionPlanner {
+  min-width: 92px !important;
+}
