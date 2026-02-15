@@ -19,6 +19,9 @@ class CAndruavMap3D {
         this.m_plannerSelectWaypointHandler = null;
         this.m_missionLayerHandlersBound = false;
         this.m_missionAltitudeMarkers = new Map();
+        this.m_altitudePathOverlaySvg = null;
+        this.m_lastMissionPlans = null;
+        this.m_lastActiveMissionId = null;
     }
 
     async fn_loadMapboxSdk() {
@@ -243,13 +246,93 @@ class CAndruavMap3D {
         return Math.max(0, rawAlt);
     }
 
+    fn_getStemHeightPx(altitudeMeters) {
+        return Math.min(120, Math.max(10, Math.round(altitudeMeters * 1.5)));
+    }
+
+    fn_ensureAltitudePathOverlay() {
+        if (!this.m_map || !this.m_map.getContainer) return;
+        if (this.m_altitudePathOverlaySvg) return;
+
+        const container = this.m_map.getContainer();
+        if (!container) return;
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'css_map3d_altitude_path_overlay');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        svg.setAttribute('viewBox', `0 0 ${container.clientWidth || 1} ${container.clientHeight || 1}`);
+        container.appendChild(svg);
+        this.m_altitudePathOverlaySvg = svg;
+    }
+
+    fn_clearAltitudePathOverlay() {
+        if (!this.m_altitudePathOverlaySvg) return;
+        while (this.m_altitudePathOverlaySvg.firstChild) {
+            this.m_altitudePathOverlaySvg.removeChild(this.m_altitudePathOverlaySvg.firstChild);
+        }
+    }
+
+    fn_renderAltitudePathOverlay(missionPlans, activeMissionId) {
+        if (!this.m_map || !this.m_isReady) return;
+
+        this.fn_ensureAltitudePathOverlay();
+        if (!this.m_altitudePathOverlaySvg) return;
+
+        const container = this.m_map.getContainer();
+        const w = container?.clientWidth || 1;
+        const h = container?.clientHeight || 1;
+        this.m_altitudePathOverlaySvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+        this.fn_clearAltitudePathOverlay();
+
+        const plans = missionPlans ? Object.entries(missionPlans) : [];
+        for (const [missionId, mission] of plans) {
+            if (!mission || !Array.isArray(mission.m_all_mission_items_shaps)) continue;
+            const items = mission.m_all_mission_items_shaps
+                .filter((shape) => shape && typeof shape.getLatLng === 'function')
+                .slice()
+                .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+
+            if (items.length < 2) continue;
+
+            const isActiveMission = String(missionId) === String(activeMissionId);
+            const color = mission.m_pathColor || '#00d1b2';
+
+            for (let i = 0; i < items.length - 1; i += 1) {
+                const fromShape = items[i];
+                const toShape = items[i + 1];
+                const fromLL = fromShape.getLatLng();
+                const toLL = toShape.getLatLng();
+                if (!fromLL || !toLL) continue;
+
+                const fromPoint = this.m_map.project([fromLL.lng, fromLL.lat]);
+                const toPoint = this.m_map.project([toLL.lng, toLL.lat]);
+
+                const fromY = fromPoint.y - this.fn_getStemHeightPx(this.fn_getShapeAltitudeMeters(fromShape));
+                const toY = toPoint.y - this.fn_getStemHeightPx(this.fn_getShapeAltitudeMeters(toShape));
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', `${fromPoint.x}`);
+                line.setAttribute('y1', `${fromY}`);
+                line.setAttribute('x2', `${toPoint.x}`);
+                line.setAttribute('y2', `${toY}`);
+                line.setAttribute('stroke', color);
+                line.setAttribute('stroke-width', isActiveMission ? '3.5' : '2.5');
+                line.setAttribute('stroke-linecap', 'round');
+                line.setAttribute('opacity', isActiveMission ? '1' : '0.78');
+                this.m_altitudePathOverlaySvg.appendChild(line);
+            }
+        }
+    }
+
     fn_createAltitudeMarkerElement(altitudeMeters, isActive) {
         const root = document.createElement('div');
         root.className = `css_map3d_altitude_marker${isActive ? ' active' : ''}`;
 
         const stem = document.createElement('div');
         stem.className = 'css_map3d_altitude_stem';
-        const stemHeight = Math.min(120, Math.max(10, Math.round(altitudeMeters * 1.5)));
+        const stemHeight = this.fn_getStemHeightPx(altitudeMeters);
         stem.style.height = `${stemHeight}px`;
 
         const head = document.createElement('div');
@@ -409,9 +492,13 @@ class CAndruavMap3D {
     }
 
     fn_syncMissionPlans(missionPlans, activeMissionId) {
+        this.m_lastMissionPlans = missionPlans;
+        this.m_lastActiveMissionId = activeMissionId;
+
         const geojson = this.fn_buildMissionGeoJson(missionPlans, activeMissionId);
         this.fn_applyMissionGeoJson(geojson);
         this.fn_syncAltitudeMarkers(missionPlans, activeMissionId);
+        this.fn_renderAltitudePathOverlay(missionPlans, activeMissionId);
     }
 
     fn_setPlannerCreateWaypointHandler(handler) {
@@ -485,6 +572,11 @@ class CAndruavMap3D {
         this.m_map.on('moveend', () => {
             const view = this.fn_getView();
             if (view) this.m_lastView = view;
+            this.fn_renderAltitudePathOverlay(this.m_lastMissionPlans, this.m_lastActiveMissionId);
+        });
+
+        this.m_map.on('resize', () => {
+            this.fn_renderAltitudePathOverlay(this.m_lastMissionPlans, this.m_lastActiveMissionId);
         });
     }
 
@@ -554,6 +646,7 @@ class CAndruavMap3D {
         this.m_isVisible = false;
         this.m_pendingViewState = null;
         this.fn_clearMissionAltitudeMarkers();
+        this.fn_clearAltitudePathOverlay();
     }
 
     fn_focusUnit(unit) {

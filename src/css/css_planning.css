@@ -197,3 +197,10 @@ img.leaflet-marker-icon
 .css_map3d_altitude_marker.active .css_map3d_altitude_stem {
     border-left-color: rgba(255, 255, 255, 0.95);
 }
+
+.css_map3d_altitude_path_overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 18;
+}
