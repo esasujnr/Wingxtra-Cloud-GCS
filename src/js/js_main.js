@@ -25,6 +25,7 @@ import { ClssAndruavFencePlan } from './js_plan_fence.js'
 import { js_andruavAuth } from './js_andruav_auth'
 import { js_leafletmap } from './js_leafletmap'
 import { js_map3d } from './js_map3d'
+import { js_mapmission_planmanager } from './js_mapmissionPlanManager.js'
 import { js_eventEmitter } from './js_eventEmitter'
 import { js_localStorage } from './js_localStorage'
 import { js_webrtcstream } from './js_webrtcthin2.js'
@@ -54,6 +55,16 @@ var info_unit_context_popup = null;
 let selectedMissionFilesToRead = "";
 let selectedMissionFilesToWrite = "";
 let g_lastMap3DViewState = null;
+
+function fn_syncPlannerMissionIn3D() {
+	if (js_globals.CONST_MAP_EDITOR !== true) return;
+	if (!js_mapmission_planmanager || !js_mapmission_planmanager.m_missionPlans) return;
+
+	const activeMission = js_mapmission_planmanager.fn_getCurrentMission();
+	const activeMissionId = activeMission ? activeMission.m_id : null;
+	js_map3d.fn_syncMissionPlans(js_mapmission_planmanager.m_missionPlans, activeMissionId);
+}
+
 
 export const setSelectedMissionFilePathToRead = function (p_file_name) {
 	selectedMissionFilesToRead = p_file_name;
@@ -1111,7 +1122,7 @@ export function fn_openFenceManager(p_partyID) {
 		return;
 	}
 
-	window.open('mapeditor?zoom=18&lat=' + p_andruavUnit.m_Nav_Info.p_Location.lat + '&lng=' + p_andruavUnit.m_Nav_Info.p_Location.lng);
+	window.location.assign('mapeditor?zoom=18&lat=' + p_andruavUnit.m_Nav_Info.p_Location.lat + '&lng=' + p_andruavUnit.m_Nav_Info.p_Location.lng);
 	return false;
 }
 
@@ -2959,7 +2970,7 @@ function showGeoFenceInfo(p_lat, p_lng, geoFenceInfo) {
 	}
 
 	let v_contentString = "<p class='img-rounded " + _style + "'><strong>" + geoFenceInfo.m_geoFenceName + _icon + "</strong></p><span class='help-block'>" + p_lat.toFixed(7) + " " + p_lng.toFixed(7) + "</span>";
-	v_contentString += "<div class='row'><div class= 'col-sm-12'><p class='cursor_hand bg-success link-white si-07x' onclick=\"window.open('./mapeditor?zoom=" + js_leafletmap.fn_getZoom() + "&lat=" + p_lat + "&lng=" + p_lng + "', '_blank')\"," + js_globals.CONST_DEFAULT_ALTITUDE + "," + js_globals.CONST_DEFAULT_RADIUS + "," + 10 + " )\">Open Geo Fence Here</p></div></div>";
+	v_contentString += "<div class='row'><div class= 'col-sm-12'><p class='cursor_hand bg-success link-white si-07x' onclick=\"window.location.assign('./mapeditor?zoom=" + js_leafletmap.fn_getZoom() + "&lat=" + p_lat + "&lng=" + p_lng + "')\"," + js_globals.CONST_DEFAULT_ALTITUDE + "," + js_globals.CONST_DEFAULT_RADIUS + "," + 10 + " )\">Open Geo Fence Here</p></div></div>";
 
 	infowindow = js_leafletmap.fn_showInfoWindow(infowindow, v_contentString, p_lat, p_lng);
 
@@ -3345,6 +3356,20 @@ export function fn_on_ready() {
 
 
 	fn_showMap();
+
+	if (js_globals.CONST_MAP_EDITOR === true) {
+		js_map3d.fn_setPlannerCreateWaypointHandler((loc) => {
+			if (loc == null || loc.lat == null || loc.lng == null) return;
+			js_leafletmap.fn_addMarkerManually([loc.lat, loc.lng], js_leafletmap);
+		});
+		js_map3d.fn_enablePlannerCreateWaypoint(true);
+
+		js_eventEmitter.fn_subscribe(js_event.EE_mapMissionUpdate, this, fn_syncPlannerMissionIn3D);
+		js_eventEmitter.fn_subscribe(js_event.EE_onPlanToggle, this, fn_syncPlannerMissionIn3D);
+		js_eventEmitter.fn_subscribe(js_event.EE_onShapeEdited, this, fn_syncPlannerMissionIn3D);
+		js_eventEmitter.fn_subscribe(js_event.EE_onShapeDeleted, this, fn_syncPlannerMissionIn3D);
+		fn_syncPlannerMissionIn3D();
+	}
 
 	if (js_globals.CONST_MAP_EDITOR !== true) {
 		gui_hidesubmenus();

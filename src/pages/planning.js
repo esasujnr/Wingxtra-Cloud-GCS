@@ -18,7 +18,7 @@ import ClssHeaderControl from '../components/jsc_header'
 import ClssFooterControl from '../components/jsc_footer'
 import ClssAndruavUnitList from '../components/unit_controls/jsc_unitControlMainList.jsx'
 import ClssMain_Control_Buttons from '../components/planning/jsc_ctrl_main_control_buttons.jsx'
-import { fn_on_ready } from '../js/js_main'
+import { fn_on_ready, fn_showMap3D, fn_toggleMapMode } from '../js/js_main'
 
 
 
@@ -29,13 +29,13 @@ const Planning = () => {
 	js_globals.CONST_MAP_EDITOR = true;
 
 	useEffect(() => {
-
 		fn_on_ready();
-	}
-	);
+		fn_showMap3D();
+	},
+	[]);
 
 	return (
-		<div>
+		<div className="planning-page">
 			<div id="rowheader" className="row mt-0 me-0 mw-0 mb-5">
 				<ClssHeaderControl />
 			</div>
@@ -47,6 +47,38 @@ const Planning = () => {
 							<div className="monitorview " id="div_map_view">
 								<div id='mapid' className="org_border fullscreen">
 								</div>
+							</div>
+							<div className="monitorview" id="div_map3d_view" style={{ display: 'none' }}>
+								<div id="mapid3d" className="org_border fullscreen"></div>
+							</div>
+
+							<div id="map_overlay_left_tools" className="css_map_overlay_left_tools">
+								<a
+									id="btn_flyView"
+									className="btn btn-sm btn-warning bi bi-airplane-fill"
+									href="./home"
+									title="Return to Fly View"
+								>
+									<strong className="ms-1">Fly View</strong>
+								</a>
+							</div>
+
+
+							<div id="map_overlay_bottom_left_tools" className="css_map_overlay_bottom_left_tools">
+								<span className="badge bg-dark text-warning" title="In 3D mode hold Shift and click the map to add waypoint to active mission">
+									3D Tip: Shift+Click adds waypoint
+								</span>
+							</div>
+							<div id="map_overlay_right_tools" className="css_map_overlay_right_tools">
+								<button
+									type="button"
+									id="btn_toggleMapMode"
+									className="btn btn-danger btn-sm bi bi-map"
+									title="Toggle 2D/3D map (3D: Shift+Click to add waypoint)"
+									onClick={() => fn_toggleMapMode()}
+								>
+									<strong>2D Map</strong>
+								</button>
 							</div>
 						</div>
 					</div>
