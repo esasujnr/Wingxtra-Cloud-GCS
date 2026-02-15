@@ -1521,3 +1521,46 @@ div#displays
 #btn_missionPlanner {
   min-width: 92px !important;
 }
+
+/* Keep map controls over map and hide Leaflet zoom +/- */
+#displays {
+  position: relative;
+}
+
+.leaflet-control-zoom {
+  display: none !important;
+}
+
+/* Map overlay controls all on top-left */
+.css_map_overlay_left_tools {
+  top: 86px;
+  left: 16px;
+}
+
+.css_map_overlay_right_tools {
+  top: 136px;
+  left: 16px;
+  right: auto;
+  align-items: flex-start;
+}
+
+/* Settings chevron attached to settings card */
+#settings_panel_toggle_wrap {
+  margin-bottom: 0;
+}
+
+#btn_toggleSettingsChevron {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  width: 100%;
+  max-width: 100%;
+  color: #b8d6ee;
+  background: rgba(9, 22, 38, 0.92);
+  border-color: #1f4a6d;
+}
+
+#settings_menu_panel .card {
+  margin-top: 0 !important;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}

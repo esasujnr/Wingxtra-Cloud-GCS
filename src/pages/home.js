@@ -166,7 +166,7 @@ const Home = () => {
             <button
               type="button"
               id="btn_toggleSettingsChevron"
-              className="btn btn-sm btn-outline-info"
+              className="btn btn-sm btn-primary txt-theme-aware border-light"
               title="Show/Hide settings panel"
               onClick={() => fn_showSettings()}
             >
@@ -174,13 +174,13 @@ const Home = () => {
             </button>
           </div>
           <div id="andruavUnits" className="col-sm-12 padding_zero">
-            <div id="andruavUnits_in" className="">
+            <div id="settings_menu_panel" className="">
               <ClssGlobalSettings />
               <div id="andruavUnitGlobals"></div>
-              <p className="bg-warning text-center css_margin_top_small">
-                <strong>{t('home:onlineUnits')}</strong>
-              </p>
             </div>
+            <p className="bg-warning text-center css_margin_top_small">
+              <strong>{t('home:onlineUnits')}</strong>
+            </p>
             <div id="guiMessageCtrl" className="row"></div>
             <div id="andruavUnitList" className="row">
               <ClssAndruavUnitList

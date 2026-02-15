@@ -614,7 +614,7 @@ export function fn_showMap3D() {
 }
 
 export function fn_showSettings() {
-	const panel = $('#andruavUnits_in');
+	const panel = $('#settings_menu_panel');
 	const wasVisible = panel.is(':visible');
 	panel.toggle();
 

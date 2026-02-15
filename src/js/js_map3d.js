@@ -127,9 +127,9 @@ class CAndruavMap3D {
         this.m_map = new mapboxgl.Map({
             container: containerId,
             style: js_siteConfig.CONST_MAPBOX_STYLE || 'mapbox://styles/mapbox/standard-satellite',
-            center: [24.767945, 42.144913],
-            zoom: 15.47,
-            pitch: 53,
+            center: [20.0, 1.2],
+            zoom: 4.2,
+            pitch: 45,
             bearing: 0,
             antialias: true
         });
