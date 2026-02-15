@@ -568,17 +568,22 @@ export function fn_showControl() {
 
 
 
+// -----------------------------------------------------------------------------
+// Map Mode Toggle (2D / 3D) - SINGLE DEFINITIONS ONLY
+// -----------------------------------------------------------------------------
 
-function fn_updateMapToggleButton(is3DVisible) {
+export function fn_updateMapToggleButton(is3DVisible) {
 	const btn = $('#btn_toggleMapMode');
 	if (btn.length === 0) return;
 
 	if (is3DVisible === true) {
-		btn.removeClass('btn-secondary bi-badge-3d').addClass('btn-danger bi-map');
+		btn.removeClass('btn-secondary bi-badge-3d')
+			.addClass('btn-danger bi-map');
 		btn.attr('title', 'Switch to 2D map');
 		btn.find('strong').text('2D Map');
 	} else {
-		btn.removeClass('btn-danger bi-map').addClass('btn-secondary bi-badge-3d');
+		btn.removeClass('btn-danger bi-map')
+			.addClass('btn-secondary bi-badge-3d');
 		btn.attr('title', 'Switch to 3D map');
 		btn.find('strong').text('3D Map');
 	}
@@ -586,37 +591,13 @@ function fn_updateMapToggleButton(is3DVisible) {
 
 export function fn_toggleMapMode() {
 	const is3DVisible = $('#div_map3d_view').is(':visible');
+
 	if (is3DVisible === true) {
 		fn_showMap();
+		fn_updateMapToggleButton(false);
 	} else {
 		fn_showMap3D();
-	}
-}
-
-
-
-
-function fn_updateMapToggleButton(is3DVisible) {
-	const btn = $('#btn_toggleMapMode');
-	if (btn.length === 0) return;
-
-	if (is3DVisible === true) {
-		btn.removeClass('btn-secondary bi-badge-3d').addClass('btn-danger bi-map');
-		btn.attr('title', 'Switch to 2D map');
-		btn.find('strong').text('2D Map');
-	} else {
-		btn.removeClass('btn-danger bi-map').addClass('btn-secondary bi-badge-3d');
-		btn.attr('title', 'Switch to 3D map');
-		btn.find('strong').text('3D Map');
-	}
-}
-
-export function fn_toggleMapMode() {
-	const is3DVisible = $('#div_map3d_view').is(':visible');
-	if (is3DVisible === true) {
-		fn_showMap();
-	} else {
-		fn_showMap3D();
+		fn_updateMapToggleButton(true);
 	}
 }
 
