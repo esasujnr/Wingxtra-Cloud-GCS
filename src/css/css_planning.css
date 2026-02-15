@@ -143,3 +143,13 @@ img.leaflet-marker-icon
 .css_mission_item_card button#btn { /* ID selector used in existing code, slightly risky but specific */
    width: 100%;
 }
+/* Planner map overlays: keep edit tools below Fly View action */
+.planning-page .css_map_overlay_left_tools {
+    top: 78px;
+}
+
+
+/* In planning mode, push Leaflet draw/edit controls below Fly View button */
+.planning-page .leaflet-top.leaflet-left {
+    margin-top: 110px;
+}
