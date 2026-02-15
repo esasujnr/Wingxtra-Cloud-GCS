@@ -577,6 +577,11 @@ export function fn_showControl() {
 
 
 export function fn_showMap() {
+	const view3d = js_map3d.fn_getView();
+	if (view3d && Number.isFinite(view3d.lat) && Number.isFinite(view3d.lng) && Number.isFinite(view3d.zoom)) {
+		js_leafletmap.fn_setView(view3d.lat, view3d.lng, view3d.zoom);
+	}
+
 	$('#div_video_control').hide();
 	$('#div_map3d_view').hide();
 	$('#div_map_view').show();
@@ -591,6 +596,12 @@ export function fn_showMap() {
 }
 
 export function fn_showMap3D() {
+	const center = js_leafletmap.fn_getCenter();
+	const zoom = js_leafletmap.fn_getZoom();
+	if (center && Number.isFinite(zoom)) {
+		js_map3d.fn_setView({ lat: center.lat, lng: center.lng, zoom });
+	}
+
 	$('#div_video_control').hide();
 	$('#div_map_view').hide();
 	$('#div_map3d_view').show();
@@ -3316,10 +3327,6 @@ export function fn_on_ready() {
 			fn_showVideoMainTab
 		);
 
-
-		js_eventEmitter.fn_subscribe(js_event.EE_unitHighlighted, this, function (me, p_andruavUnit) {
-			js_map3d.fn_focusUnit(p_andruavUnit);
-		});
 
 		js_eventEmitter.fn_subscribe(js_event.EE_unitHighlighted, this, function (me, p_andruavUnit) {
 			js_map3d.fn_focusUnit(p_andruavUnit);
