@@ -350,26 +350,7 @@ class CAndruavMap3D {
         this.fn_applyViewState(state);
     }
 
-    fn_getViewState() {
-        if (!this.m_map || !this.m_isReady) {
-            return {
-                lat: 5.6037,
-                lng: -0.1870,
-                zoom: 11.5,
-                bearing: 0,
-                pitch: 45
-            };
-        }
 
-        const center = this.m_map.getCenter();
-        return {
-            lat: center.lat,
-            lng: center.lng,
-            zoom: this.m_map.getZoom(),
-            bearing: this.m_map.getBearing(),
-            pitch: this.m_map.getPitch()
-        };
-    }
 
     fn_applyViewState(state) {
         if (state == null) return;
