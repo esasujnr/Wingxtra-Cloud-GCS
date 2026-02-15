@@ -149,6 +149,101 @@ class CAndruavMap3D {
                 this.m_map.resize();
             }
         });
+
+        this.m_map.on('moveend', () => {
+            const view = this.fn_getView();
+            if (view) this.m_lastView = view;
+        });
+    }
+
+    fn_getViewState() {
+        if (!this.m_map || !this.m_isReady) {
+            return {
+                lat: 5.6037,
+                lng: -0.1870,
+                zoom: 11.5,
+                bearing: 0,
+                pitch: 45
+            };
+        }
+
+        const center = this.m_map.getCenter();
+        return {
+            lat: center.lat,
+            lng: center.lng,
+            zoom: this.m_map.getZoom(),
+            bearing: this.m_map.getBearing(),
+            pitch: this.m_map.getPitch()
+        };
+    }
+
+    fn_applyViewState(state) {
+        if (state == null) return;
+
+        if (!this.m_map || !this.m_isReady) {
+            this.m_pendingViewState = state;
+            return;
+        }
+
+        const lat = Number(state.lat);
+        const lng = Number(state.lng);
+        const zoom = Number(state.zoom);
+        const bearing = Number(state.bearing);
+        const pitch = Number(state.pitch);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(zoom)) return;
+
+        this.m_map.jumpTo({
+            center: [lng, lat],
+            zoom,
+            bearing: Number.isFinite(bearing) ? bearing : this.m_map.getBearing(),
+            pitch: Number.isFinite(pitch) ? pitch : this.m_map.getPitch()
+        });
+    }
+
+    fn_getViewState() {
+        if (!this.m_map || !this.m_isReady) {
+            return {
+                lat: 5.6037,
+                lng: -0.1870,
+                zoom: 11.5,
+                bearing: 0,
+                pitch: 45
+            };
+        }
+
+        const center = this.m_map.getCenter();
+        return {
+            lat: center.lat,
+            lng: center.lng,
+            zoom: this.m_map.getZoom(),
+            bearing: this.m_map.getBearing(),
+            pitch: this.m_map.getPitch()
+        };
+    }
+
+    fn_applyViewState(state) {
+        if (state == null) return;
+
+        if (!this.m_map || !this.m_isReady) {
+            this.m_pendingViewState = state;
+            return;
+        }
+
+        const lat = Number(state.lat);
+        const lng = Number(state.lng);
+        const zoom = Number(state.zoom);
+        const bearing = Number(state.bearing);
+        const pitch = Number(state.pitch);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(zoom)) return;
+
+        this.m_map.jumpTo({
+            center: [lng, lat],
+            zoom,
+            bearing: Number.isFinite(bearing) ? bearing : this.m_map.getBearing(),
+            pitch: Number.isFinite(pitch) ? pitch : this.m_map.getPitch()
+        });
     }
 
     // Backward-compatible aliases for any stale/hot-reload references.
