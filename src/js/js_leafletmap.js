@@ -398,6 +398,18 @@ class CLeafLetAndruavMap {
     };
 
 
+    fn_getCenter() {
+        if (this.m_Map == null) return null;
+        const center = this.m_Map.getCenter();
+        return { lat: center.lat, lng: center.lng };
+    }
+
+    fn_setView(p_lat, p_lng, p_zoom) {
+        if (this.m_Map == null) return;
+        this.m_Map.setView([p_lat, p_lng], p_zoom, { animate: false });
+    }
+
+
     /**
      * Hide a shape or a marker.
      * This is an abstract call so that other types of maps can be implemented.
