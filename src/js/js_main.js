@@ -24,6 +24,7 @@ import * as js_andruav_facade from './server_comm/js_andruav_facade.js'
 import { ClssAndruavFencePlan } from './js_plan_fence.js'
 import { js_andruavAuth } from './js_andruav_auth'
 import { js_leafletmap } from './js_leafletmap'
+import { js_map3d } from './js_map3d'
 import { js_eventEmitter } from './js_eventEmitter'
 import { js_localStorage } from './js_localStorage'
 import { js_webrtcstream } from './js_webrtcthin2.js'
@@ -238,10 +239,6 @@ function fn_handleKeyBoard() {
 					fn_showVideoMainTab();
 				}
 
-				if (key >= '1' && key <= '6') {
-					js_localStorage.fn_setDisplayMode(parseInt(parseInt(key) - 1));
-					fn_applyControl(parseInt(key));
-				}
 			}
 		}
 	});
@@ -431,9 +428,13 @@ function fn_doGimbalCtrl(unit, pitch, roll, yaw) {
 
 export function fn_showVideoMainTab() {
 	$('#div_map_view').hide();
+	$('#div_map3d_view').hide();
 	$('#div_video_control').show();
 
+	js_map3d.fn_hide();
+
 	$('#btn_showMap').show();
+	$('#btn_showMap3D').show();
 	$('#btn_showVideo').hide();
 }
 
@@ -447,6 +448,8 @@ function fn_activateClassicalView() {
 	$('#row_2').addClass('col-lg-4 col-xl-4 col-xxl-4 col-12');
 
 	$('#div_map_view').show();
+	$('#div_map3d_view').hide();
+	js_map3d.fn_hide();
 	$('#andruav_unit_list_array_fixed').hide();
 	$('#andruav_unit_list_array_float').hide();
 
@@ -454,6 +457,7 @@ function fn_activateClassicalView() {
 
 	$('#btn_showVideo').show();
 	$('#btn_showMap').show();
+	$('#btn_showMap3D').show();
 
 	$([document.documentElement, document.body]).animate({
 		scrollTop: $("#row_2").offset().top
@@ -467,12 +471,15 @@ function fn_activateMapCameraSectionOnly() {
 	$('#row_1').addClass('col-12');
 
 	$('#div_map_view').show();
+	$('#div_map3d_view').hide();
+	js_map3d.fn_hide();
 	$('#andruav_unit_list_array_fixed').hide();
 	$('#andruav_unit_list_array_float').hide();
 
 	$('#btn_showSettings').hide();
 	$('#btn_showVideo').show();
 	$('#btn_showMap').hide();
+	$('#btn_showMap3D').show();
 }
 
 
@@ -483,12 +490,15 @@ function fn_activateFixedVehicleListOnly() {
 	$('#row_1').addClass('col-12');
 
 	$('#div_map_view').hide();
+	$('#div_map3d_view').hide();
+	js_map3d.fn_hide();
 	$('#andruav_unit_list_array_fixed').show();
 	$('#andruav_unit_list_array_float').hide();
 
 	$('#btn_showSettings').hide();
 	$('#btn_showVideo').hide();
 	$('#btn_showMap').hide();
+	$('#btn_showMap3D').hide();
 }
 
 function fn_activateMapCameraSectionAndFloatingList() {
@@ -498,6 +508,8 @@ function fn_activateMapCameraSectionAndFloatingList() {
 	$('#row_1').addClass('col-12');
 
 	$('#div_map_view').show();
+	$('#div_map3d_view').hide();
+	js_map3d.fn_hide();
 	$('#andruav_unit_list_array_fixed').hide();
 	$('#andruav_unit_list_array_float').show();
 	$('#andruav_unit_list_array_float').css({ top: 400, left: 10, position: 'absolute' });
@@ -505,6 +517,7 @@ function fn_activateMapCameraSectionAndFloatingList() {
 	$('#btn_showSettings').hide();
 	$('#btn_showVideo').show();
 	$('#btn_showMap').hide();
+	$('#btn_showMap3D').show();
 }
 
 function fn_activateAllViews() {
@@ -517,6 +530,8 @@ function fn_activateAllViews() {
 
 
 	$('#div_map_view').show();
+	$('#div_map3d_view').hide();
+	js_map3d.fn_hide();
 	$('#andruav_unit_list_array_fixed').hide();
 	$('#andruav_unit_list_array_float').show();
 	$('#andruav_unit_list_array_float').css({ top: 400, left: 10, position: 'absolute' });
@@ -524,6 +539,7 @@ function fn_activateAllViews() {
 	$('#btn_showSettings').show();
 	$('#btn_showVideo').show();
 	$('#btn_showMap').show();
+	$('#btn_showMap3D').show();
 
 	$([document.documentElement, document.body]).animate({
 		scrollTop: $("#row_2").offset().top
@@ -537,97 +553,24 @@ function fn_activateVehicleCardOnly() {
 	$('#row_2').addClass('col-12');
 
 	$('#div_map_view').hide();
+	$('#div_map3d_view').hide();
+	js_map3d.fn_hide();
 	$('#andruav_unit_list_array_fixed').hide();
 	$('#andruav_unit_list_array_float').hide();
 
 	$('#btn_showSettings').show();
 	$('#btn_showVideo').hide();
 	$('#btn_showMap').hide();
+	$('#btn_showMap3D').hide();
 }
 
-export function fn_applyControl(v_small_mode) {
-	let v_display_mode = js_localStorage.fn_getDisplayMode();
-
-	if (v_display_mode == null) v_display_mode = 0;
-
-	if (v_small_mode === true) {
-		switch (v_display_mode % 4) {
-			case 0:
-				// Classic View
-				fn_activateClassicalView();
-				$('#btn_showControl').html("<strong>DISPLAY-1</strong>");
-
-				break;
-
-			case 1:
-				// Map or Camera Only
-				fn_activateMapCameraSectionOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-2</strong>");
-				break;
-
-
-			case 2:
-				// Vehicle List
-				fn_activateFixedVehicleListOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-3</strong>");
-				break;
-
-			case 3:
-				// Vehicle Control Cards
-				fn_activateVehicleCardOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-4</strong>");
-				break;
-
-			default:
-				break;
-		}
-	}
-	else {
-		switch (v_display_mode % 6) {
-			case 0:
-				// Classic View
-				fn_activateClassicalView();
-				$('#btn_showControl').html("<strong>DISPLAY-1</strong>");
-				break;
-
-			case 1:
-				fn_activateMapCameraSectionOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-2</strong>");
-				break;
-
-
-			case 2:
-				fn_activateMapCameraSectionAndFloatingList();
-				$('#btn_showControl').html("<strong>DISPLAY-3</strong>");
-				break;
-
-			case 3:
-				fn_activateFixedVehicleListOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-4</strong>");
-				break;
-
-			case 4:
-				fn_activateVehicleCardOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-5</strong>");
-				break;
-
-			case 5:
-				fn_activateAllViews();
-				$('#btn_showControl').html("<strong>DISPLAY-6</strong>");
-				break;
-
-			default:
-				break;
-		}
-	}
-
-	js_localStorage.fn_setDisplayMode(v_display_mode);
+export function fn_applyControl() {
+	fn_activateClassicalView();
 	js_leafletmap.fn_invalidateSize();
 }
 
-export function fn_showControl(v_small_mode) {
-	js_localStorage.fn_setDisplayMode(parseInt(js_localStorage.fn_getDisplayMode()) + 1);
-	fn_applyControl(v_small_mode);
+export function fn_showControl() {
+	fn_applyControl();
 }
 
 
@@ -635,8 +578,27 @@ export function fn_showControl(v_small_mode) {
 
 export function fn_showMap() {
 	$('#div_video_control').hide();
+	$('#div_map3d_view').hide();
 	$('#div_map_view').show();
+
+	js_map3d.fn_hide();
+
 	$('#btn_showMap').hide();
+	$('#btn_showMap3D').show();
+	$('#btn_showVideo').show();
+
+	js_leafletmap.fn_invalidateSize();
+}
+
+export function fn_showMap3D() {
+	$('#div_video_control').hide();
+	$('#div_map_view').hide();
+	$('#div_map3d_view').show();
+
+	js_map3d.fn_show();
+
+	$('#btn_showMap').show();
+	$('#btn_showMap3D').hide();
 	$('#btn_showVideo').show();
 }
 
@@ -1944,6 +1906,7 @@ var infowindow = null;
 function initMap() {
 	try {
 		js_leafletmap.fn_initMap('mapid');
+		js_map3d.fn_initMap('mapid3d');
 		fn_setLapout();
 		fn_gps_getLocation();
 	}
@@ -2584,6 +2547,7 @@ function EVT_msgFromUnit_GPS(me, p_andruavUnit) {
 		}
 
 		js_leafletmap.fn_setPosition_bylatlng(p_andruavUnit.m_gui.m_marker, p_andruavUnit.m_Nav_Info.p_Location.lat, p_andruavUnit.m_Nav_Info.p_Location.lng, p_andruavUnit.m_Nav_Info.p_Orientation.yaw);
+		js_map3d.fn_syncUnit(p_andruavUnit);
 		js_eventEmitter.fn_dispatch(js_event.EE_unitUpdated, p_andruavUnit);
 	}
 	else {
@@ -3352,10 +3316,10 @@ export function fn_on_ready() {
 			fn_showVideoMainTab
 		);
 
-		$('#btn_showControl').click(
-			fn_showControl
-		);
 
+		js_eventEmitter.fn_subscribe(js_event.EE_unitHighlighted, this, function (me, p_andruavUnit) {
+			js_map3d.fn_focusUnit(p_andruavUnit);
+		});
 
 		$('#gimbaldiv').find('#btnpitchm').on('click', function () {
 			const p = $('#div_video_view').attr('partyID');
