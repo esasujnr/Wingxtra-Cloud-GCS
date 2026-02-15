@@ -41,6 +41,72 @@ class CAndruavMap3D {
         return window.mapboxgl;
     }
 
+    fn_getBuildingOpacity() {
+        const configured = Number(js_siteConfig.CONST_MAPBOX_3D_BUILDING_OPACITY);
+        if (!Number.isFinite(configured)) return 0.35;
+        return Math.min(0.95, Math.max(0.05, configured));
+    }
+
+    fn_applyTerrain() {
+        if (!this.m_map) return;
+
+        const exaggeration = Number(js_siteConfig.CONST_MAPBOX_TERRAIN_EXAGGERATION);
+        const terrainExaggeration = Number.isFinite(exaggeration) && exaggeration > 0 ? exaggeration : 1.0;
+
+        if (!this.m_map.getSource('mapbox-dem')) {
+            this.m_map.addSource('mapbox-dem', {
+                type: 'raster-dem',
+                url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                tileSize: 512,
+                maxzoom: 14
+            });
+        }
+
+        this.m_map.setTerrain({
+            source: 'mapbox-dem',
+            exaggeration: terrainExaggeration
+        });
+    }
+
+    fn_applyBuildings() {
+        if (!this.m_map) return;
+
+        const buildingOpacity = this.fn_getBuildingOpacity();
+        const buildingColor = js_siteConfig.CONST_MAPBOX_3D_BUILDING_COLOR || '#b7d1e6';
+        const style = this.m_map.getStyle();
+        const layers = style?.layers || [];
+
+        const existingBuildingLayerIds = layers
+            .filter((layer) => layer.type === 'fill-extrusion' && layer.id.toLowerCase().includes('building'))
+            .map((layer) => layer.id);
+
+        if (existingBuildingLayerIds.length > 0) {
+            existingBuildingLayerIds.forEach((layerId) => {
+                this.m_map.setLayoutProperty(layerId, 'visibility', 'visible');
+                this.m_map.setPaintProperty(layerId, 'fill-extrusion-opacity', buildingOpacity);
+                this.m_map.setPaintProperty(layerId, 'fill-extrusion-color', buildingColor);
+            });
+            return;
+        }
+
+        if (!this.m_map.getLayer('add-3d-buildings') && this.m_map.getSource('composite')) {
+            this.m_map.addLayer({
+                id: 'add-3d-buildings',
+                source: 'composite',
+                'source-layer': 'building',
+                filter: ['==', 'extrude', 'true'],
+                type: 'fill-extrusion',
+                minzoom: 13,
+                paint: {
+                    'fill-extrusion-color': buildingColor,
+                    'fill-extrusion-height': ['coalesce', ['get', 'height'], 0],
+                    'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
+                    'fill-extrusion-opacity': buildingOpacity
+                }
+            });
+        }
+    }
+
     async fn_initMap(containerId) {
         if (this.m_isReady === true || this.m_map != null) return;
 
@@ -64,23 +130,8 @@ class CAndruavMap3D {
         });
 
         this.m_map.on('style.load', () => {
-            const hasBuildingLayer = this.m_map.getLayer('add-3d-buildings');
-            if (!hasBuildingLayer) {
-                this.m_map.addLayer({
-                    id: 'add-3d-buildings',
-                    source: 'composite',
-                    'source-layer': 'building',
-                    filter: ['==', 'extrude', 'true'],
-                    type: 'fill-extrusion',
-                    minzoom: 15,
-                    paint: {
-                        'fill-extrusion-color': js_siteConfig.CONST_MAPBOX_3D_BUILDING_COLOR || '#b7d1e6',
-                        'fill-extrusion-height': ['get', 'height'],
-                        'fill-extrusion-base': ['get', 'min_height'],
-                        'fill-extrusion-opacity': js_siteConfig.CONST_MAPBOX_3D_BUILDING_OPACITY ?? 0.22
-                    }
-                });
-            }
+            this.fn_applyTerrain();
+            this.fn_applyBuildings();
         });
 
         this.m_map.on('load', () => {
