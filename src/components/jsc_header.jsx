@@ -5,7 +5,6 @@ import * as  js_siteConfig from '../js/js_siteConfig'
 
 import ClssLoginControl from './jsc_login.jsx'
 import ClssCtrlLayout from './jsc_ctrl_layoutControl.jsx'
-import ThemeSwitcher from './jsc_theme_switcher.jsx'
 
 import { withTranslation } from 'react-i18next';
 
@@ -55,34 +54,7 @@ class ClssHeaderControl extends React.Component {
                             {js_siteConfig.CONST_TITLE}
                         </a>
                         <div className="collapse navbar-collapse" id="navbarNav">
-                            <ul className="navbar-nav">
-                                <li key="Home" className="nav-item active">
-                                    <a className="nav-link txt-theme-aware" href={js_siteConfig.CONST_HOME_URL}>{t('header.home')} </a>
-                                </li>
-                                <li key="Geo" className="nav-item">
-                                    <a className="nav-link txt-theme-aware" id='mapeditor' href="./mapeditor" target='_blank' rel="noopener noreferrer">{t('header.planner')}</a>
-                                </li>
-                                <li key="Manual" className="nav-item">
-                                    <a className="nav-link txt-theme-aware" href={js_siteConfig.CONST_MANUAL_URL} target='_blank' rel="noopener noreferrer" >Wiki</a>
-                                </li>
-                                <li key="FAQ" className="nav-item">
-                                    <a className="nav-link txt-theme-aware" href={js_siteConfig.CONST_FAQ_URL} target='_blank' rel="noopener noreferrer">FAQ</a>
-                                </li>
-                                <li key="Contact" className="nav-item">
-                                    <a className="nav-link txt-theme-aware " href={js_siteConfig.CONST_CONTACT_URL} target='_blank' rel="noopener noreferrer">{t('header.contact')}</a>
-                                </li>
-                                {js_siteConfig.CONST_ANDRUAV_URL_ENABLE && <li key="AndruavAPK" className="nav-item">
-                                    <a className="nav-link text-warning" href={js_siteConfig.CONST_ANDRUAV_URL} target='_blank' rel="noopener noreferrer">AndruavAP APK</a>
-                                </li>}
-                                {js_siteConfig.CONST_ACCOUNT_URL_ENABLE && <li key="Account" className="nav-item">
-                                    <a className="nav-link txt-theme-aware" href="./accounts" target='_blank' rel="noopener noreferrer">{t('header.account')}</a>
-                                </li>}
-                                <li key="Theme" className="nav-item">
-                                    <div className="nav-link p-0">
-                                        <ThemeSwitcher showLabel={false} className="d-inline-block" />
-                                    </div>
-                                </li>
-                            </ul>
+                            <ul className="navbar-nav"></ul>
                         </div>
                     </nav>
                 </div>

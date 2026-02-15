@@ -14,11 +14,9 @@ async function fn_startApp() {
   const Layout = (await import('./pages/Layout')).default;
   const Home = (await import('./pages/home')).default;
   const Planning = (await import('./pages/planning')).default;
-  const Accounts = (await import('./pages/accounts')).default;
   const NoPage = (await import('./pages/NoPage')).default;
   const GamePadTesterPage = (await import('./pages/gamepadTester')).default;
   const DebugPage = (await import('./pages/debug')).default;
-  const { ThemeProvider } = await import('./js/js_theme_context');
 
 
   function App2() {
@@ -32,10 +30,7 @@ async function fn_startApp() {
             <Route path="index" element={<Home />} />
             <Route path="home" element={<Home />} />
             <Route path="webclient" element={<Home />} />
-            <Route path="planner" element={<Planning />} />
-            <Route path="planning" element={<Planning />} />
             <Route path="mapeditor" element={<Planning />} />
-            <Route path="accounts" element={<Accounts />} />
             <Route path="gamepad" element={<GamePadTesterPage />} />
             <Route path="debug" element={<DebugPage />} />
             <Route path="*" element={<NoPage />} />
@@ -49,9 +44,7 @@ async function fn_startApp() {
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(
     <I18nextProvider i18n={i18n}>
-      <ThemeProvider>
-        <App2 />
-      </ThemeProvider>
+      <App2 />
     </I18nextProvider>
   );
 }
