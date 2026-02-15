@@ -53,6 +53,7 @@ var v_context_busy = false;
 var info_unit_context_popup = null;
 let selectedMissionFilesToRead = "";
 let selectedMissionFilesToWrite = "";
+let g_lastMap3DViewState = null;
 
 export const setSelectedMissionFilePathToRead = function (p_file_name) {
 	selectedMissionFilesToRead = p_file_name;
@@ -431,15 +432,7 @@ function fn_doGimbalCtrl(unit, pitch, roll, yaw) {
 
 
 export function fn_showVideoMainTab() {
-	$('#div_map_view').hide();
-	$('#div_map3d_view').hide();
-	$('#div_video_control').show();
-
-	js_map3d.fn_hide();
-
-	$('#btn_showMap').show();
-	$('#btn_showMap3D').show();
-	$('#btn_showVideo').hide();
+	$('#div_video_control').toggle();
 }
 
 
@@ -656,38 +649,71 @@ export function fn_showControl(v_small_mode) {
 
 
 
+function fn_updateMapToggleButton(is3DVisible) {
+	const btn = $('#btn_toggleMapMode');
+	if (btn.length === 0) return;
+
+	if (is3DVisible === true) {
+		btn.removeClass('btn-secondary bi-badge-3d').addClass('btn-danger bi-map');
+		btn.attr('title', 'Switch to 2D map');
+		btn.find('strong').text('2D Map');
+	} else {
+		btn.removeClass('btn-danger bi-map').addClass('btn-secondary bi-badge-3d');
+		btn.attr('title', 'Switch to 3D map');
+		btn.find('strong').text('3D Map');
+	}
+}
+
+export function fn_toggleMapMode() {
+	const is3DVisible = $('#div_map3d_view').is(':visible');
+	if (is3DVisible === true) {
+		fn_showMap();
+	} else {
+		fn_showMap3D();
+	}
+}
+
 export function fn_showMap() {
-	$('#div_video_control').hide();
+	const map3dState = js_map3d.fn_getViewState();
+	g_lastMap3DViewState = map3dState;
+
 	$('#div_map3d_view').hide();
 	$('#div_map_view').show();
 
 	js_map3d.fn_hide();
-
-	$('#btn_showMap').hide();
-	$('#btn_showMap3D').show();
-	$('#btn_showVideo').show();
-
+	js_leafletmap.fn_applyViewState(map3dState);
 	js_leafletmap.fn_invalidateSize();
+	fn_updateMapToggleButton(false);
 }
 
 export function fn_showMap3D() {
-	$('#div_video_control').hide();
+	const map2dState = js_leafletmap.fn_getViewState();
+	if (g_lastMap3DViewState != null) {
+		map2dState.bearing = g_lastMap3DViewState.bearing;
+		map2dState.pitch = g_lastMap3DViewState.pitch;
+	}
+
 	$('#div_map_view').hide();
 	$('#div_map3d_view').show();
 
 	js_map3d.fn_show();
-
-	$('#btn_showMap').show();
-	$('#btn_showMap3D').hide();
-	$('#btn_showVideo').show();
+	js_map3d.fn_applyViewState(map2dState);
+	fn_updateMapToggleButton(true);
 }
 
 export function fn_showSettings() {
-	$('#andruavUnits_in').toggle();
+	const panel = $('#settings_menu_panel');
+	const wasVisible = panel.is(':visible');
+	panel.toggle();
 
-	$([document.documentElement, document.body]).animate({
-		scrollTop: $("#row_2").offset().top
-	}, 100);
+	const isVisible = panel.is(':visible');
+	$('#btn_toggleSettingsChevron').attr('aria-expanded', isVisible ? 'true' : 'false');
+
+	if (wasVisible === false && $('#row_2').length > 0) {
+		$([document.documentElement, document.body]).animate({
+			scrollTop: $("#row_2").offset().top
+		}, 100);
+	}
 }
 
 function onWEBRTCSessionStarted(c_talk) {
@@ -3392,9 +3418,6 @@ export function fn_on_ready() {
 			fn_showMap
 		);
 
-		$('#btn_showVideo').click(
-			fn_showVideoMainTab
-		);
 
 		$('#btn_showControl').click(
 			fn_showControl
