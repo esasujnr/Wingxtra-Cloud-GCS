@@ -95,11 +95,7 @@ export let CONST_FEATURE = {
  */
 export let CONST_LANGUAGE = {
   ENABLED_LANGUAGES: [
-    { code: 'en', label: 'English', className: '' },
-    { code: 'ar', label: 'عربى', className: 'rtl' },
-    { code: 'fr', label: 'Français', className: '' },
-    { code: 'es', label: 'Español', className: '' },
-    { code: 'ru', label: 'Русский', className: '' }
+    { code: 'en', label: 'English', className: '' }
   ],
   DEFAULT_LANGUAGE: 'en'
 };
