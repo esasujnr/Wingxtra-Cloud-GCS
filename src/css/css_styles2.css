@@ -1564,3 +1564,42 @@ div#displays
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+
+/* Requested map control positions */
+.css_map_overlay_right_tools {
+  top: 86px;
+  right: 16px;
+  left: auto;
+  align-items: flex-end;
+}
+
+.css_map_overlay_bottom_left_tools {
+  position: absolute;
+  z-index: 900;
+  left: 16px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.css_map_overlay_bottom_left_tools .btn {
+  pointer-events: auto;
+  min-width: 120px;
+}
+
+/* Camera stream overlays map instead of replacing it */
+#div_video_control {
+  position: absolute !important;
+  left: 16px;
+  bottom: 64px;
+  width: min(520px, 92%);
+  max-height: 48%;
+  z-index: 850;
+  display: none;
+  background: rgba(3, 9, 18, 0.88);
+  border: 1px solid #2e739f;
+  border-radius: 6px;
+  overflow: hidden;
+}

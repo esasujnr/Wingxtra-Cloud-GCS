@@ -53,6 +53,7 @@ var v_context_busy = false;
 var info_unit_context_popup = null;
 let selectedMissionFilesToRead = "";
 let selectedMissionFilesToWrite = "";
+let g_lastMap3DViewState = null;
 
 export const setSelectedMissionFilePathToRead = function (p_file_name) {
 	selectedMissionFilesToRead = p_file_name;
@@ -427,15 +428,7 @@ function fn_doGimbalCtrl(unit, pitch, roll, yaw) {
 
 
 export function fn_showVideoMainTab() {
-	$('#div_map_view').hide();
-	$('#div_map3d_view').hide();
-	$('#div_video_control').show();
-
-	js_map3d.fn_hide();
-
-	$('#btn_showMap').show();
-	$('#btn_showMap3D').show();
-	$('#btn_showVideo').hide();
+	$('#div_video_control').toggle();
 }
 
 
@@ -577,40 +570,29 @@ export function fn_showControl() {
 
 
 export function fn_showMap() {
-	const view3d = js_map3d.fn_getView();
-	if (view3d && Number.isFinite(view3d.lat) && Number.isFinite(view3d.lng) && Number.isFinite(view3d.zoom)) {
-		js_leafletmap.fn_setView(view3d.lat, view3d.lng, view3d.zoom);
-	}
+	const map3dState = js_map3d.fn_getViewState();
+	g_lastMap3DViewState = map3dState;
 
-	$('#div_video_control').hide();
 	$('#div_map3d_view').hide();
 	$('#div_map_view').show();
 
 	js_map3d.fn_hide();
-
-	$('#btn_showMap').hide();
-	$('#btn_showMap3D').show();
-	$('#btn_showVideo').show();
-
+	js_leafletmap.fn_applyViewState(map3dState);
 	js_leafletmap.fn_invalidateSize();
 }
 
 export function fn_showMap3D() {
-	const center = js_leafletmap.fn_getCenter();
-	const zoom = js_leafletmap.fn_getZoom();
-	if (center && Number.isFinite(zoom)) {
-		js_map3d.fn_setView({ lat: center.lat, lng: center.lng, zoom });
+	const map2dState = js_leafletmap.fn_getViewState();
+	if (g_lastMap3DViewState != null) {
+		map2dState.bearing = g_lastMap3DViewState.bearing;
+		map2dState.pitch = g_lastMap3DViewState.pitch;
 	}
 
-	$('#div_video_control').hide();
 	$('#div_map_view').hide();
 	$('#div_map3d_view').show();
 
 	js_map3d.fn_show();
-
-	$('#btn_showMap').show();
-	$('#btn_showMap3D').hide();
-	$('#btn_showVideo').show();
+	js_map3d.fn_applyViewState(map2dState);
 }
 
 export function fn_showSettings() {

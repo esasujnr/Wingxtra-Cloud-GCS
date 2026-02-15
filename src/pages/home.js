@@ -89,11 +89,14 @@ const Home = () => {
                 >
                   <strong>3D Map</strong>
                 </button>
+              </div>
+
+              <div id="map_overlay_bottom_left_tools" className="css_map_overlay_bottom_left_tools">
                 <button
                   type="button"
                   id="btn_showVideo"
                   className="btn btn-warning btn-sm bi bi-camera-fill"
-                  title="Show camera"
+                  title="Overlay camera"
                   onClick={() => fn_showVideoMainTab()}
                 >
                   <strong>CAMERA</strong>

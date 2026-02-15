@@ -20,21 +20,21 @@ class ClssCtrlLayout extends React.Component {
         if (this.m_timer) clearInterval(this.m_timer);
     }
 
-    fn_getDateLabel() {
-        return this.state.now.toLocaleDateString(undefined, {
+    fn_getDateTimeLabel() {
+        const dayName = this.state.now.toLocaleDateString(undefined, { weekday: 'short' });
+        const dateLabel = this.state.now.toLocaleDateString(undefined, {
             year: 'numeric',
             month: 'short',
             day: '2-digit'
         });
-    }
-
-    fn_getTimeLabel() {
-        return this.state.now.toLocaleTimeString(undefined, {
+        const timeLabel = this.state.now.toLocaleTimeString(undefined, {
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
             hour12: false
         });
+
+        return `${timeLabel}, ${dayName} ${dateLabel}`;
     }
 
     render() {
@@ -44,8 +44,7 @@ class ClssCtrlLayout extends React.Component {
                     Vehicle Alerts: --
                 </div>
                 <div className="css_cockpit_datetime user-select-none ms-3">
-                    <span className="css_cockpit_time">{this.fn_getTimeLabel()}</span>
-                    <span className="css_cockpit_date">{this.fn_getDateLabel()}</span>
+                    <span className="css_cockpit_time">{this.fn_getDateTimeLabel()}</span>
                 </div>
             </div>
         );

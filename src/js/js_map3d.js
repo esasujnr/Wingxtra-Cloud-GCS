@@ -6,7 +6,7 @@ class CAndruavMap3D {
         this.m_isReady = false;
         this.m_markers = new Map();
         this.m_isVisible = false;
-        this.m_lastView = { lat: 42.144913, lng: 24.767945, zoom: 15.47 };
+        this.m_pendingViewState = null;
     }
 
     async fn_loadMapboxSdk() {
@@ -127,8 +127,8 @@ class CAndruavMap3D {
         this.m_map = new mapboxgl.Map({
             container: containerId,
             style: js_siteConfig.CONST_MAPBOX_STYLE || 'mapbox://styles/mapbox/standard-satellite',
-            center: [20.0, 1.2],
-            zoom: 4.2,
+            center: [-0.1870, 5.6037],
+            zoom: 11.5,
             pitch: 45,
             bearing: 0,
             antialias: true
@@ -141,7 +141,10 @@ class CAndruavMap3D {
 
         this.m_map.on('load', () => {
             this.m_isReady = true;
-            this.m_lastView = this.fn_getView() || this.m_lastView;
+            if (this.m_pendingViewState) {
+                this.fn_applyViewState(this.m_pendingViewState);
+                this.m_pendingViewState = null;
+            }
             if (this.m_isVisible === true) {
                 this.m_map.resize();
             }
@@ -153,6 +156,51 @@ class CAndruavMap3D {
         });
     }
 
+    fn_getViewState() {
+        if (!this.m_map || !this.m_isReady) {
+            return {
+                lat: 5.6037,
+                lng: -0.1870,
+                zoom: 11.5,
+                bearing: 0,
+                pitch: 45
+            };
+        }
+
+        const center = this.m_map.getCenter();
+        return {
+            lat: center.lat,
+            lng: center.lng,
+            zoom: this.m_map.getZoom(),
+            bearing: this.m_map.getBearing(),
+            pitch: this.m_map.getPitch()
+        };
+    }
+
+    fn_applyViewState(state) {
+        if (state == null) return;
+
+        if (!this.m_map || !this.m_isReady) {
+            this.m_pendingViewState = state;
+            return;
+        }
+
+        const lat = Number(state.lat);
+        const lng = Number(state.lng);
+        const zoom = Number(state.zoom);
+        const bearing = Number(state.bearing);
+        const pitch = Number(state.pitch);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(zoom)) return;
+
+        this.m_map.jumpTo({
+            center: [lng, lat],
+            zoom,
+            bearing: Number.isFinite(bearing) ? bearing : this.m_map.getBearing(),
+            pitch: Number.isFinite(pitch) ? pitch : this.m_map.getPitch()
+        });
+    }
+
     fn_show() {
         this.m_isVisible = true;
         if (this.m_map) this.m_map.resize();
@@ -160,6 +208,7 @@ class CAndruavMap3D {
 
     fn_hide() {
         this.m_isVisible = false;
+        this.m_pendingViewState = null;
     }
 
     fn_getView() {
