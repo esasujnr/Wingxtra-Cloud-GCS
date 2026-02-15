@@ -149,6 +149,33 @@ class CAndruavMap3D {
                 this.m_map.resize();
             }
         });
+
+        this.m_map.on('moveend', () => {
+            const view = this.fn_getView();
+            if (view) this.m_lastView = view;
+        });
+    }
+
+    // ---------- VIEW STATE (single canonical implementation) ----------
+    fn_getViewState() {
+        if (!this.m_map || !this.m_isReady) {
+            return {
+                lat: 5.6037,
+                lng: -0.1870,
+                zoom: 11.5,
+                bearing: 0,
+                pitch: 45
+            };
+        }
+
+        const center = this.m_map.getCenter();
+        return {
+            lat: center.lat,
+            lng: center.lng,
+            zoom: this.m_map.getZoom(),
+            bearing: this.m_map.getBearing(),
+            pitch: this.m_map.getPitch()
+        };
     }
 
     // Backward-compatible aliases for any stale/hot-reload references.
@@ -253,5 +280,8 @@ class CAndruavMap3D {
         }
     }
 }
+
+// NOTE: finish your export the same way you had it originally (your paste cut off)
+// e.g. export const js_map3d = new CAndruavMap3D();
 
 export const js_map3d = new CAndruavMap3D();
