@@ -19,7 +19,7 @@ export let CONST_PROD_MODE_PORT = '19408';
 export let CONST_TEST_MODE_IP = '127.0.0.1';
 export let CONST_TEST_MODE_PORT = '19408';
 export let CONST_TEST_MODE_ENABLE_LOG = true;
-export let CONST_TITLE = 'Drone Engage';
+export let CONST_TITLE = 'Winxtra C2';
 
 export let CONST_WEBCONNECTOR_ENABLED = false;
 export let CONST_WEBCONNECTOR_AUTH_HOST = '127.0.0.1';
