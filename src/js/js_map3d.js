@@ -8,6 +8,20 @@ class CAndruavMap3D {
         this.m_isVisible = false;
         this.m_pendingViewState = null;
         this.m_lastView = null;
+
+        this.m_pendingMissionGeoJson = null;
+        this.m_missionSourceId = 'de-mission-plan-source';
+        this.m_missionLineLayerId = 'de-mission-plan-lines';
+        this.m_missionPointLayerId = 'de-mission-plan-points';
+
+        this.m_plannerCreateEnabled = false;
+        this.m_plannerCreateWaypointHandler = null;
+        this.m_plannerSelectWaypointHandler = null;
+        this.m_missionLayerHandlersBound = false;
+        this.m_missionAltitudeMarkers = new Map();
+        this.m_altitudePathOverlaySvg = null;
+        this.m_lastMissionPlans = null;
+        this.m_lastActiveMissionId = null;
     }
 
     async fn_loadMapboxSdk() {
@@ -113,6 +127,393 @@ class CAndruavMap3D {
         }, beforeLayerId);
     }
 
+    fn_ensureMissionLayers() {
+        if (!this.m_map) return;
+
+        if (!this.m_map.getSource(this.m_missionSourceId)) {
+            this.m_map.addSource(this.m_missionSourceId, {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+        }
+
+        if (!this.m_map.getLayer(this.m_missionLineLayerId)) {
+            this.m_map.addLayer({
+                id: this.m_missionLineLayerId,
+                type: 'line',
+                source: this.m_missionSourceId,
+                filter: ['==', '$type', 'LineString'],
+                paint: {
+                    'line-color': ['coalesce', ['get', 'color'], '#00d1b2'],
+                    'line-width': ['case', ['boolean', ['get', 'active'], false], 4.5, 3],
+                    'line-opacity': 0.85
+                }
+            });
+        }
+
+        try {
+            this.m_map.setLayoutProperty(this.m_missionLineLayerId, 'line-elevation-reference', 'ground');
+            this.m_map.setPaintProperty(this.m_missionLineLayerId, 'line-z-offset', ['coalesce', ['get', 'avg_alt_m'], 0]);
+        } catch (_) {
+            // Optional style properties are not available in all mapbox builds.
+        }
+
+        if (!this.m_map.getLayer(this.m_missionPointLayerId)) {
+            this.m_map.addLayer({
+                id: this.m_missionPointLayerId,
+                type: 'circle',
+                source: this.m_missionSourceId,
+                filter: ['==', '$type', 'Point'],
+                paint: {
+                    'circle-radius': ['case', ['boolean', ['get', 'active'], false], 7, 5],
+                    'circle-color': ['coalesce', ['get', 'color'], '#00d1b2'],
+                    'circle-stroke-width': 1.5,
+                    'circle-stroke-color': '#ffffff'
+                }
+            });
+        }
+
+        this.fn_bindMissionLayerInteractions();
+
+        if (this.m_pendingMissionGeoJson) {
+            this.fn_applyMissionGeoJson(this.m_pendingMissionGeoJson);
+            this.m_pendingMissionGeoJson = null;
+        }
+    }
+
+
+    fn_bindMissionLayerInteractions() {
+        if (!this.m_map) return;
+        if (this.m_missionLayerHandlersBound === true) return;
+        if (!this.m_map.getLayer(this.m_missionPointLayerId)) return;
+
+        this.m_map.on('click', this.m_missionPointLayerId, (event) => {
+            if (typeof this.m_plannerSelectWaypointHandler !== 'function') return;
+
+            const feature = event?.features?.[0];
+            const missionId = feature?.properties?.missionId;
+            const order = Number(feature?.properties?.order);
+            if (missionId == null || !Number.isFinite(order) || order <= 0) return;
+
+            this.m_plannerSelectWaypointHandler({ missionId, order });
+        });
+
+        this.m_map.on('mouseenter', this.m_missionPointLayerId, () => {
+            this.m_map.getCanvas().style.cursor = 'pointer';
+        });
+
+        this.m_map.on('mouseleave', this.m_missionPointLayerId, () => {
+            this.m_map.getCanvas().style.cursor = '';
+        });
+
+        this.m_missionLayerHandlersBound = true;
+    }
+
+    fn_applyMissionGeoJson(geojson) {
+        if (!geojson) return;
+        if (!this.m_map || !this.m_isReady) {
+            this.m_pendingMissionGeoJson = geojson;
+            return;
+        }
+
+        const src = this.m_map.getSource(this.m_missionSourceId);
+        if (!src) {
+            this.m_pendingMissionGeoJson = geojson;
+            return;
+        }
+
+        src.setData(geojson);
+    }
+
+
+    fn_clearMissionAltitudeMarkers() {
+        this.m_missionAltitudeMarkers.forEach((entry) => {
+            try {
+                entry.marker.remove();
+            } catch (_) {
+                // ignore marker cleanup errors
+            }
+        });
+        this.m_missionAltitudeMarkers.clear();
+    }
+
+    fn_getShapeAltitudeMeters(shape) {
+        const rawAlt = Number(shape?.m_missionItem?.alt);
+        if (!Number.isFinite(rawAlt)) return 0;
+        return Math.max(0, rawAlt);
+    }
+
+    fn_getStemHeightPx(altitudeMeters) {
+        return Math.min(120, Math.max(10, Math.round(altitudeMeters * 1.5)));
+    }
+
+    fn_ensureAltitudePathOverlay() {
+        if (!this.m_map || !this.m_map.getContainer) return;
+        if (this.m_altitudePathOverlaySvg) return;
+
+        const container = this.m_map.getContainer();
+        if (!container) return;
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'css_map3d_altitude_path_overlay');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        svg.setAttribute('viewBox', `0 0 ${container.clientWidth || 1} ${container.clientHeight || 1}`);
+        container.appendChild(svg);
+        this.m_altitudePathOverlaySvg = svg;
+    }
+
+    fn_clearAltitudePathOverlay() {
+        if (!this.m_altitudePathOverlaySvg) return;
+        while (this.m_altitudePathOverlaySvg.firstChild) {
+            this.m_altitudePathOverlaySvg.removeChild(this.m_altitudePathOverlaySvg.firstChild);
+        }
+    }
+
+    fn_renderAltitudePathOverlay(missionPlans, activeMissionId) {
+        if (!this.m_map || !this.m_isReady) return;
+
+        this.fn_ensureAltitudePathOverlay();
+        if (!this.m_altitudePathOverlaySvg) return;
+
+        const container = this.m_map.getContainer();
+        const w = container?.clientWidth || 1;
+        const h = container?.clientHeight || 1;
+        this.m_altitudePathOverlaySvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+        this.fn_clearAltitudePathOverlay();
+
+        const plans = missionPlans ? Object.entries(missionPlans) : [];
+        for (const [missionId, mission] of plans) {
+            if (!mission || !Array.isArray(mission.m_all_mission_items_shaps)) continue;
+            const items = mission.m_all_mission_items_shaps
+                .filter((shape) => shape && typeof shape.getLatLng === 'function')
+                .slice()
+                .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+
+            if (items.length < 2) continue;
+
+            const isActiveMission = String(missionId) === String(activeMissionId);
+            const color = mission.m_pathColor || '#00d1b2';
+
+            for (let i = 0; i < items.length - 1; i += 1) {
+                const fromShape = items[i];
+                const toShape = items[i + 1];
+                const fromLL = fromShape.getLatLng();
+                const toLL = toShape.getLatLng();
+                if (!fromLL || !toLL) continue;
+
+                const fromPoint = this.m_map.project([fromLL.lng, fromLL.lat]);
+                const toPoint = this.m_map.project([toLL.lng, toLL.lat]);
+
+                const fromY = fromPoint.y - this.fn_getStemHeightPx(this.fn_getShapeAltitudeMeters(fromShape));
+                const toY = toPoint.y - this.fn_getStemHeightPx(this.fn_getShapeAltitudeMeters(toShape));
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', `${fromPoint.x}`);
+                line.setAttribute('y1', `${fromY}`);
+                line.setAttribute('x2', `${toPoint.x}`);
+                line.setAttribute('y2', `${toY}`);
+                line.setAttribute('stroke', color);
+                line.setAttribute('stroke-width', isActiveMission ? '3.5' : '2.5');
+                line.setAttribute('stroke-linecap', 'round');
+                line.setAttribute('opacity', isActiveMission ? '1' : '0.78');
+                this.m_altitudePathOverlaySvg.appendChild(line);
+            }
+        }
+    }
+
+    fn_createAltitudeMarkerElement(altitudeMeters, isActive) {
+        const root = document.createElement('div');
+        root.className = `css_map3d_altitude_marker${isActive ? ' active' : ''}`;
+
+        const stem = document.createElement('div');
+        stem.className = 'css_map3d_altitude_stem';
+        const stemHeight = this.fn_getStemHeightPx(altitudeMeters);
+        stem.style.height = `${stemHeight}px`;
+
+        const head = document.createElement('div');
+        head.className = 'css_map3d_altitude_head';
+
+        const label = document.createElement('div');
+        label.className = 'css_map3d_altitude_label';
+        label.innerText = `${Math.round(altitudeMeters)}m`;
+
+        root.appendChild(label);
+        root.appendChild(head);
+        root.appendChild(stem);
+        return root;
+    }
+
+    fn_syncAltitudeMarkers(missionPlans, activeMissionId) {
+        if (!this.m_map || !this.m_isReady) return;
+
+        const nextKeys = new Set();
+        const plans = missionPlans ? Object.entries(missionPlans) : [];
+
+        for (const [missionId, mission] of plans) {
+            if (!mission || !Array.isArray(mission.m_all_mission_items_shaps)) continue;
+            const isActiveMission = String(missionId) === String(activeMissionId);
+
+            mission.m_all_mission_items_shaps.forEach((shape) => {
+                if (!shape || typeof shape.getLatLng !== 'function') return;
+                const ll = shape.getLatLng();
+                if (!ll || !Number.isFinite(ll.lat) || !Number.isFinite(ll.lng)) return;
+
+                const altitudeMeters = this.fn_getShapeAltitudeMeters(shape);
+                const key = `${missionId}:${shape.order}`;
+                nextKeys.add(key);
+
+                const existing = this.m_missionAltitudeMarkers.get(key);
+                if (existing) {
+                    const shouldRecreate = existing.altitude !== altitudeMeters || existing.isActive !== isActiveMission;
+                    if (shouldRecreate !== true) {
+                        existing.marker.setLngLat([ll.lng, ll.lat]);
+                        return;
+                    }
+
+                    try {
+                        existing.marker.remove();
+                    } catch (_) {
+                        // ignore marker cleanup errors
+                    }
+                    this.m_missionAltitudeMarkers.delete(key);
+                }
+
+                const element = this.fn_createAltitudeMarkerElement(altitudeMeters, isActiveMission);
+                element.addEventListener('click', () => {
+                    if (typeof this.m_plannerSelectWaypointHandler === 'function') {
+                        this.m_plannerSelectWaypointHandler({ missionId, order: Number(shape.order) });
+                    }
+                });
+
+                const marker = new window.mapboxgl.Marker({
+                    element,
+                    anchor: 'bottom'
+                })
+                    .setLngLat([ll.lng, ll.lat])
+                    .addTo(this.m_map);
+
+                this.m_missionAltitudeMarkers.set(key, {
+                    marker,
+                    altitude: altitudeMeters,
+                    isActive: isActiveMission
+                });
+            });
+        }
+
+        for (const [key, value] of this.m_missionAltitudeMarkers.entries()) {
+            if (nextKeys.has(key)) continue;
+            try {
+                value.marker.remove();
+            } catch (_) {
+                // ignore marker cleanup errors
+            }
+            this.m_missionAltitudeMarkers.delete(key);
+        }
+    }
+
+    fn_buildMissionGeoJson(missionPlans, activeMissionId) {
+        const features = [];
+        if (!missionPlans) {
+            return { type: 'FeatureCollection', features };
+        }
+
+        const entries = Object.entries(missionPlans);
+
+        for (const [missionId, mission] of entries) {
+            if (!mission || !mission.m_all_mission_items_shaps || mission.m_all_mission_items_shaps.length === 0) {
+                continue;
+            }
+
+            const isActive = String(missionId) === String(activeMissionId);
+            const color = mission.m_pathColor || '#00d1b2';
+
+            const points = [];
+            mission.m_all_mission_items_shaps.forEach((shape) => {
+                if (!shape || typeof shape.getLatLng !== 'function') return;
+                const ll = shape.getLatLng();
+                if (ll == null || ll.lat == null || ll.lng == null) return;
+
+                const alt_m = this.fn_getShapeAltitudeMeters(shape);
+                points.push({ ll, alt_m, order: Number(shape.order || 0) });
+
+                features.push({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [ll.lng, ll.lat]
+                    },
+                    properties: {
+                        missionId: String(missionId),
+                        order: Number(shape.order || 0),
+                        alt_m,
+                        color,
+                        active: isActive
+                    }
+                });
+            });
+
+            if (points.length > 1) {
+                for (let i = 0; i < points.length - 1; i += 1) {
+                    const fromPoint = points[i];
+                    const toPoint = points[i + 1];
+                    const avg_alt_m = (fromPoint.alt_m + toPoint.alt_m) / 2.0;
+
+                    features.push({
+                        type: 'Feature',
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: [
+                                [fromPoint.ll.lng, fromPoint.ll.lat],
+                                [toPoint.ll.lng, toPoint.ll.lat]
+                            ]
+                        },
+                        properties: {
+                            missionId: String(missionId),
+                            fromOrder: fromPoint.order,
+                            toOrder: toPoint.order,
+                            avg_alt_m,
+                            color,
+                            active: isActive
+                        }
+                    });
+                }
+            }
+        }
+
+        return {
+            type: 'FeatureCollection',
+            features
+        };
+    }
+
+    fn_syncMissionPlans(missionPlans, activeMissionId) {
+        this.m_lastMissionPlans = missionPlans;
+        this.m_lastActiveMissionId = activeMissionId;
+
+        const geojson = this.fn_buildMissionGeoJson(missionPlans, activeMissionId);
+        this.fn_applyMissionGeoJson(geojson);
+        this.fn_syncAltitudeMarkers(missionPlans, activeMissionId);
+        this.fn_renderAltitudePathOverlay(missionPlans, activeMissionId);
+    }
+
+    fn_setPlannerCreateWaypointHandler(handler) {
+        this.m_plannerCreateWaypointHandler = handler;
+    }
+
+
+    fn_setPlannerSelectWaypointHandler(handler) {
+        this.m_plannerSelectWaypointHandler = handler;
+    }
+
+    fn_enablePlannerCreateWaypoint(enabled) {
+        this.m_plannerCreateEnabled = enabled === true;
+    }
+
     async fn_initMap(containerId) {
         if (this.m_isReady === true || this.m_map != null) return;
 
@@ -142,6 +543,7 @@ class CAndruavMap3D {
 
         this.m_map.on('load', () => {
             this.m_isReady = true;
+            this.fn_ensureMissionLayers();
 
             if (this.m_pendingViewState) {
                 this.fn_applyViewState(this.m_pendingViewState);
@@ -153,9 +555,29 @@ class CAndruavMap3D {
             }
         });
 
+        this.m_map.on('click', (event) => {
+            if (this.m_plannerCreateEnabled !== true || typeof this.m_plannerCreateWaypointHandler !== 'function') {
+                return;
+            }
+
+            if (event?.originalEvent?.shiftKey !== true) {
+                return;
+            }
+
+            this.m_plannerCreateWaypointHandler({
+                lat: event.lngLat.lat,
+                lng: event.lngLat.lng
+            });
+        });
+
         this.m_map.on('moveend', () => {
             const view = this.fn_getView();
             if (view) this.m_lastView = view;
+            this.fn_renderAltitudePathOverlay(this.m_lastMissionPlans, this.m_lastActiveMissionId);
+        });
+
+        this.m_map.on('resize', () => {
+            this.fn_renderAltitudePathOverlay(this.m_lastMissionPlans, this.m_lastActiveMissionId);
         });
     }
 
@@ -223,6 +645,8 @@ class CAndruavMap3D {
     fn_hide() {
         this.m_isVisible = false;
         this.m_pendingViewState = null;
+        this.fn_clearMissionAltitudeMarkers();
+        this.fn_clearAltitudePathOverlay();
     }
 
     fn_focusUnit(unit) {
@@ -263,8 +687,5 @@ class CAndruavMap3D {
         }
     }
 }
-
-// NOTE: finish your export the same way you had it originally (your paste cut off)
-// e.g. export const js_map3d = new CAndruavMap3D();
 
 export const js_map3d = new CAndruavMap3D();

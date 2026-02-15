@@ -62,8 +62,6 @@ const Home = () => {
                   id="btn_missionPlanner"
                   className="btn btn-sm btn-primary bi bi-sign-turn-slight-right-fill"
                   href="./mapeditor"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   title="Mission Planner"
                 >
                   <strong className="ms-1">Plan</strong>
