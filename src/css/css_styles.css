@@ -1483,3 +1483,13 @@ button.btn-outline-theme-aware:not(.hidden):disabled,
  .btn.bg-dark:active {
    filter: brightness(.85);
  }
+
+.css_map3d_marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50% 50% 50% 0;
+  background: #ff4d4f;
+  border: 2px solid #ffffff;
+  transform: rotate(-45deg);
+  box-shadow: 0 0 6px rgba(0,0,0,0.4);
+}

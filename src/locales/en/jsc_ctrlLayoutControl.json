@@ -4,8 +4,8 @@
     "title": "Show/Hide Settings Section"
   },
   "map": {
-    "label": "MAP",
-    "title": "Show Map (ctrl+m)"
+    "label": "2D Map",
+    "title": "Show 2D map"
   },
   "camera": {
     "label": "CAMERA",
@@ -18,5 +18,9 @@
   "layoutSmall": {
     "label": "display-{{mode}}",
     "title": "Change Screen Layout"
+  },
+  "map3d": {
+    "label": "3D Map",
+    "title": "Show 3D map"
   }
 }
