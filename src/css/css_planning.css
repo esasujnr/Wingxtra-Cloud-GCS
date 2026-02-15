@@ -143,3 +143,64 @@ img.leaflet-marker-icon
 .css_mission_item_card button#btn { /* ID selector used in existing code, slightly risky but specific */
    width: 100%;
 }
+/* Planner map overlays: keep edit tools below Fly View action */
+.planning-page .css_map_overlay_left_tools {
+    top: 78px;
+}
+
+
+/* In planning mode, push Leaflet draw/edit controls below Fly View button */
+.planning-page .leaflet-top.leaflet-left {
+    margin-top: 110px;
+}
+
+/* 3D planner altitude visualization markers */
+.css_map3d_altitude_marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: auto;
+    user-select: none;
+}
+
+.css_map3d_altitude_label {
+    color: #c9f8ff;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(142, 255, 245, 0.6);
+    border-radius: 10px;
+    padding: 0 5px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.css_map3d_altitude_head {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #00d1b2;
+    border: 1px solid #ffffff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+
+.css_map3d_altitude_stem {
+    width: 0;
+    border-left: 2px dashed rgba(0, 209, 178, 0.9);
+    margin-top: 1px;
+}
+
+.css_map3d_altitude_marker.active .css_map3d_altitude_head {
+    background: #ffffff;
+}
+
+.css_map3d_altitude_marker.active .css_map3d_altitude_stem {
+    border-left-color: rgba(255, 255, 255, 0.95);
+}
+
+.css_map3d_altitude_path_overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 18;
+}

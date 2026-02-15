@@ -120,12 +120,9 @@ export class ClssMainContextMenu extends React.Component {
                     <div className="col-sm-12">
                         <p
                             className="cursor_hand text-primary margin_zero si-07x al_c"
-                            onClick={() =>
-                                window.open(
-                                    `./mapeditor?zoom=${js_leafletmap.fn_getZoom()}&lat=${v_lat}&lng=${v_lng}`,
-                                    '_blank'
-                                )
-                            }
+                            onClick={() => {
+                                window.location.assign(`./mapeditor?zoom=${js_leafletmap.fn_getZoom()}&lat=${v_lat}&lng=${v_lng}`);
+                            }}
                         >
                             Open Geo Fence Here
                         </p>
@@ -138,5 +135,4 @@ export class ClssMainContextMenu extends React.Component {
     }
 
 }
-
 
