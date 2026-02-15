@@ -35,7 +35,7 @@ const Planning = () => {
 	[]);
 
 	return (
-		<div>
+		<div className="planning-page">
 			<div id="rowheader" className="row mt-0 me-0 mw-0 mb-5">
 				<ClssHeaderControl />
 			</div>
