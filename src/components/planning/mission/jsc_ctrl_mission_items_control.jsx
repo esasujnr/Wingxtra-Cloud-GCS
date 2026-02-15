@@ -31,7 +31,20 @@ export default class ClssMission_Container extends React.Component {
 
     componentDidMount() {
         this.m_flag_mounted = true;
+        this.fn_ensureMissionPlan();
         this.setState({ m_update: 1 });
+    }
+
+    fn_ensureMissionPlan() {
+        let v_mission = js_mapmission_planmanager.fn_getCurrentMission();
+        if (v_mission != null) return v_mission;
+
+        v_mission = js_mapmission_planmanager.fn_createNewMission();
+        js_mapmission_planmanager.fn_setCurrentMission(v_mission.m_id);
+        this.m_active_id = v_mission.m_id;
+
+        this.setState({ p_plans: [...this.state.p_plans, v_mission] });
+        return v_mission;
     }
 
     fn_handleFileChange(e) {
@@ -70,6 +83,14 @@ export default class ClssMission_Container extends React.Component {
         if (p_shape.pm.m_shape_type !== 'Marker') return;
 
         let v_mission = js_mapmission_planmanager.fn_getCurrentMission();
+        if (v_mission == null) {
+            v_mission = me.fn_ensureMissionPlan();
+        }
+
+        if (v_mission == null) {
+            js_leafletmap.fn_hideItem(p_shape);
+            return;
+        }
         v_mission.fn_addMarker(p_shape);
     }
 
@@ -135,7 +156,7 @@ export default class ClssMission_Container extends React.Component {
 
         let v_mission1 = js_mapmission_planmanager.fn_getCurrentMission();
 
-        if (this.state.is_connected && this.state.p_plans && this.state.p_plans.length > 0) {
+        if (this.state.p_plans && this.state.p_plans.length > 0) {
             this.state.p_plans.forEach((v_plan) => {
                 
                 const c_id = v_plan.m_id;
@@ -189,50 +210,45 @@ export default class ClssMission_Container extends React.Component {
 
         let v_ctrl = [];
 
-        if (this.state.is_connected) {
-            v_ctrl.push(
-                <div key="fsc" className="width_100">
-                    <div className="row width_100 margin_zero css_margin_top_small">
-                        <div className="col-12">
-                            <div className="form-inline">
-                                <div className="form-group">
-                                    <label htmlFor="btn_filesWP" className="user-select-none txt-theme-aware mt-2">
-                                        <small>Global Mission File</small>
-                                    </label>
-                                    <input
-                                        type="file"
-                                        id="btn_filesWP"
-                                        name="file"
-                                        className="form-control input-xs input-sm css_margin_left_5 line-height-normal"
-                                        ref={this.mission_file_ref}
-                                        onChange={(e) => this.fn_handleFileChange(e)}
-                                    />
-                                </div>
+        v_ctrl.push(
+            <div key="fsc" className="width_100">
+                <div className="row width_100 margin_zero css_margin_top_small">
+                    <div className="col-12">
+                        <div className="form-inline">
+                            <div className="form-group">
+                                <label htmlFor="btn_filesWP" className="user-select-none txt-theme-aware mt-2">
+                                    <small>Global Mission File</small>
+                                </label>
+                                <input
+                                    type="file"
+                                    id="btn_filesWP"
+                                    name="file"
+                                    className="form-control input-xs input-sm css_margin_left_5 line-height-normal"
+                                    ref={this.mission_file_ref}
+                                    onChange={(e) => this.fn_handleFileChange(e)}
+                                />
+                                {!this.state.is_connected && (
+                                    <small className="d-block text-warning mt-1">Offline planning mode: connect a vehicle/session to upload mission.</small>
+                                )}
                             </div>
                         </div>
                     </div>
-                    <div className="row margin_zero">
-                        <div className="col-11 text-warning">
-                            <p>Add New Mission</p>
-                        </div>
-                        <div className="col-1">
-                            <button className="btn-primary btn-sm float-left" title="Add New Mission Plan" onClick={(e) => this.fn_addNewPathPlan(e)}>
-                                +
-                            </button>
-                        </div>
+                </div>
+                <div className="row margin_zero">
+                    <div className="col-11 text-warning">
+                        <p>Add New Mission</p>
                     </div>
-                    <div className="row margin_zero width_100">
-                        {item}
+                    <div className="col-1">
+                        <button className="btn-primary btn-sm float-left" title="Add New Mission Plan" onClick={(e) => this.fn_addNewPathPlan(e)}>
+                            +
+                        </button>
                     </div>
                 </div>
-            );
-        } else {
-            v_ctrl.push(
-                <div key="fsc">
-                    <h4> </h4>
+                <div className="row margin_zero width_100">
+                    {item}
                 </div>
-            );
-        }
+            </div>
+        );
 
         return (
             <div key="ClssCMissionsContainer" className="width_100">
@@ -241,4 +257,3 @@ export default class ClssMission_Container extends React.Component {
         );
     }
 };
-
