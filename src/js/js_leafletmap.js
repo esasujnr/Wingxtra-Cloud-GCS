@@ -133,8 +133,8 @@ class CLeafLetAndruavMap {
 
 
         this.m_Map = L.map(p_mapelement, {
-            center: [51.505, -0.09],
-            zoom: 13,
+            center: [5.6037, -0.1870],
+            zoom: 11,
             doubleClickZoom: false // Disable the default double-click zoom
         });
         
@@ -357,7 +357,43 @@ class CLeafLetAndruavMap {
     };
 
 
+    fn_getViewState() {
+        if (this.m_Map == null) {
+            return {
+                lat: 5.6037,
+                lng: -0.1870,
+                zoom: 11,
+                bearing: 0,
+                pitch: 0
+            };
+        }
+
+        const center = this.m_Map.getCenter();
+        return {
+            lat: center.lat,
+            lng: center.lng,
+            zoom: this.m_Map.getZoom(),
+            bearing: 0,
+            pitch: 0
+        };
+    }
+
+    fn_applyViewState(state) {
+        if (this.m_Map == null || state == null) return;
+
+        const lat = Number(state.lat);
+        const lng = Number(state.lng);
+        const zoom = Number(state.zoom);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(zoom)) return;
+        this.m_Map.setView([lat, lng], zoom, { animate: false });
+    }
+
     fn_getZoom() {
+        if (this.m_Map == null) {
+            console.warn('Map not initialized. Returning default zoom.');
+            return 11;
+        }
         return this.m_Map.getZoom();
     };
 

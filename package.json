@@ -55,7 +55,8 @@
     "build": "react-scripts build --mode production --config-overrides ./webpack.config.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "check:js-main-dupes": "node scripts/check-js-main-duplicate-functions.js"
   },
   "eslintConfig": {
     "extends": [
