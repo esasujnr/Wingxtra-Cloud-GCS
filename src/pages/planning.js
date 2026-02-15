@@ -63,12 +63,18 @@ const Planning = () => {
 								</a>
 							</div>
 
+
+							<div id="map_overlay_bottom_left_tools" className="css_map_overlay_bottom_left_tools">
+								<span className="badge bg-dark text-warning" title="In 3D mode hold Shift and click the map to add waypoint to active mission">
+									3D Tip: Shift+Click adds waypoint
+								</span>
+							</div>
 							<div id="map_overlay_right_tools" className="css_map_overlay_right_tools">
 								<button
 									type="button"
 									id="btn_toggleMapMode"
 									className="btn btn-danger btn-sm bi bi-map"
-									title="Toggle 2D/3D map"
+									title="Toggle 2D/3D map (3D: Shift+Click to add waypoint)"
 									onClick={() => fn_toggleMapMode()}
 								>
 									<strong>2D Map</strong>

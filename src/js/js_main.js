@@ -25,6 +25,7 @@ import { ClssAndruavFencePlan } from './js_plan_fence.js'
 import { js_andruavAuth } from './js_andruav_auth'
 import { js_leafletmap } from './js_leafletmap'
 import { js_map3d } from './js_map3d'
+import { js_mapmission_planmanager } from './js_mapmissionPlanManager.js'
 import { js_eventEmitter } from './js_eventEmitter'
 import { js_localStorage } from './js_localStorage'
 import { js_webrtcstream } from './js_webrtcthin2.js'
@@ -54,6 +55,16 @@ var info_unit_context_popup = null;
 let selectedMissionFilesToRead = "";
 let selectedMissionFilesToWrite = "";
 let g_lastMap3DViewState = null;
+
+function fn_syncPlannerMissionIn3D() {
+	if (js_globals.CONST_MAP_EDITOR !== true) return;
+	if (!js_mapmission_planmanager || !js_mapmission_planmanager.m_missionPlans) return;
+
+	const activeMission = js_mapmission_planmanager.fn_getCurrentMission();
+	const activeMissionId = activeMission ? activeMission.m_id : null;
+	js_map3d.fn_syncMissionPlans(js_mapmission_planmanager.m_missionPlans, activeMissionId);
+}
+
 
 export const setSelectedMissionFilePathToRead = function (p_file_name) {
 	selectedMissionFilesToRead = p_file_name;
@@ -3346,6 +3357,20 @@ export function fn_on_ready() {
 
 
 	fn_showMap();
+
+	if (js_globals.CONST_MAP_EDITOR === true) {
+		js_map3d.fn_setPlannerCreateWaypointHandler((loc) => {
+			if (loc == null || loc.lat == null || loc.lng == null) return;
+			js_leafletmap.fn_addMarkerManually([loc.lat, loc.lng], js_leafletmap);
+		});
+		js_map3d.fn_enablePlannerCreateWaypoint(true);
+
+		js_eventEmitter.fn_subscribe(js_event.EE_mapMissionUpdate, this, fn_syncPlannerMissionIn3D);
+		js_eventEmitter.fn_subscribe(js_event.EE_onPlanToggle, this, fn_syncPlannerMissionIn3D);
+		js_eventEmitter.fn_subscribe(js_event.EE_onShapeEdited, this, fn_syncPlannerMissionIn3D);
+		js_eventEmitter.fn_subscribe(js_event.EE_onShapeDeleted, this, fn_syncPlannerMissionIn3D);
+		fn_syncPlannerMissionIn3D();
+	}
 
 	if (js_globals.CONST_MAP_EDITOR !== true) {
 		gui_hidesubmenus();

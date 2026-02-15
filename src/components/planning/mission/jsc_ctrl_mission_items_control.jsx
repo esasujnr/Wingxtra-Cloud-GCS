@@ -70,6 +70,10 @@ export default class ClssMission_Container extends React.Component {
         if (p_shape.pm.m_shape_type !== 'Marker') return;
 
         let v_mission = js_mapmission_planmanager.fn_getCurrentMission();
+        if (v_mission == null) {
+            js_leafletmap.fn_hideItem(p_shape);
+            return;
+        }
         v_mission.fn_addMarker(p_shape);
     }
 
