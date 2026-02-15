@@ -19,7 +19,7 @@ export let CONST_PROD_MODE_PORT = '19408';
 export let CONST_TEST_MODE_IP = '127.0.0.1';
 export let CONST_TEST_MODE_PORT = '19408';
 export let CONST_TEST_MODE_ENABLE_LOG = true;
-export let CONST_TITLE = 'Drone Engage';
+export let CONST_TITLE = 'Winxtra C2';
 
 export let CONST_WEBCONNECTOR_ENABLED = false;
 export let CONST_WEBCONNECTOR_AUTH_HOST = '127.0.0.1';
@@ -53,7 +53,10 @@ export let CONST_MAP_LEAFLET_URL = "https://api.mapbox.com/styles/v1/mapbox/sate
 
 
 export let CONST_MAPBOX_ACCESS_TOKEN = '';
-export let CONST_MAPBOX_STYLE = 'mapbox://styles/mapbox/standard';
+export let CONST_MAPBOX_STYLE = 'mapbox://styles/mapbox/standard-satellite';
+export let CONST_MAPBOX_3D_BUILDING_OPACITY = 0.45;
+export let CONST_MAPBOX_TERRAIN_EXAGGERATION = 1.0;
+export let CONST_MAPBOX_3D_BUILDING_COLOR = '#b7d1e6';
 
 /**
  * Location of GCS are not sent over network. Only The existence of connected GCS are shared.
@@ -152,6 +155,9 @@ export function fn_applyRuntimeConfig(data) {
         if (data.CONST_MAP_LEAFLET_URL !== undefined) CONST_MAP_LEAFLET_URL = data.CONST_MAP_LEAFLET_URL;
         if (data.CONST_MAPBOX_ACCESS_TOKEN !== undefined) CONST_MAPBOX_ACCESS_TOKEN = data.CONST_MAPBOX_ACCESS_TOKEN;
         if (data.CONST_MAPBOX_STYLE !== undefined) CONST_MAPBOX_STYLE = data.CONST_MAPBOX_STYLE;
+        if (data.CONST_MAPBOX_3D_BUILDING_OPACITY !== undefined) CONST_MAPBOX_3D_BUILDING_OPACITY = data.CONST_MAPBOX_3D_BUILDING_OPACITY;
+        if (data.CONST_MAPBOX_3D_BUILDING_COLOR !== undefined) CONST_MAPBOX_3D_BUILDING_COLOR = data.CONST_MAPBOX_3D_BUILDING_COLOR;
+        if (data.CONST_MAPBOX_TERRAIN_EXAGGERATION !== undefined) CONST_MAPBOX_TERRAIN_EXAGGERATION = data.CONST_MAPBOX_TERRAIN_EXAGGERATION;
         if (data.CONST_DONT_BROADCAST_TO_GCSs !== undefined) CONST_DONT_BROADCAST_TO_GCSs = data.CONST_DONT_BROADCAST_TO_GCSs;
         if (data.CONST_DONT_BROADCAST_GCS_LOCATION !== undefined) CONST_DONT_BROADCAST_GCS_LOCATION = data.CONST_DONT_BROADCAST_GCS_LOCATION;
         if (data.CONST_FEATURE !== undefined) CONST_FEATURE = { ...CONST_FEATURE, ...data.CONST_FEATURE };

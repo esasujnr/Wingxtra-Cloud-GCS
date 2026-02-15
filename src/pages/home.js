@@ -28,7 +28,7 @@ import ClssAndruavUnitListArray from '../components/unit_controls/jsc_unitContro
 import ClssUnitParametersList from '../components/dialogs/jsc_unitParametersList.jsx';
 import ClssConfigGenerator from '../components/jsc_config_generator.jsx'
 import { ClssCVideoControl } from '../components/video/jsc_videoDisplayComponent.jsx';
-import { fn_on_ready } from '../js/js_main';
+import { fn_on_ready, fn_showSettings } from '../js/js_main';
 
 const Home = () => {
   const { t } = useTranslation('home'); // Use home namespace
@@ -119,6 +119,17 @@ const Home = () => {
         </div>
 
         <div id="row_2" className="col-lg-4 col-xl-4 col-xxl-4 col-12">
+          <div id="settings_panel_toggle_wrap" className="text-center">
+            <button
+              type="button"
+              id="btn_toggleSettingsChevron"
+              className="btn btn-sm btn-outline-info"
+              title="Show/Hide settings panel"
+              onClick={() => fn_showSettings()}
+            >
+              <strong>^</strong>
+            </button>
+          </div>
           <div id="andruavUnits" className="col-sm-12 padding_zero">
             <div id="andruavUnits_in" className="">
               <ClssGlobalSettings />
