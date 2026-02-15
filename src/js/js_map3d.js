@@ -611,6 +611,26 @@ class CAndruavMap3D {
             this.fn_refreshAltitudeVisuals();
         });
 
+        // single move handler (you had it duplicated)
+        this.m_map.on('move', () => {
+            this.fn_scheduleAltitudePathOverlayRender();
+        });
+
+        this.m_map.on('click', (evt) => {
+            if (this.m_plannerCreateEnabled !== true || typeof this.m_plannerCreateWaypointHandler !== 'function') return;
+            if (evt?.originalEvent?.shiftKey !== true) return;
+
+            this.m_plannerCreateWaypointHandler({
+                lat: evt.lngLat.lat,
+                lng: evt.lngLat.lng
+            });
+        });
+
+        this.m_map.on('render', () => {
+            if (this.m_isVisible !== true) return;
+            this.fn_scheduleAltitudePathOverlayRender();
+        });
+
         this.m_map.on('moveend', () => {
             const view = this.fn_getView();
             if (view) this.m_lastView = view;
@@ -622,16 +642,10 @@ class CAndruavMap3D {
         });
     }
 
-    // ---------- VIEW STATE (single canonical implementation) ----------
+    // ---------- VIEW STATE ----------
     fn_getViewState() {
         if (!this.m_map || !this.m_isReady) {
-            return {
-                lat: 5.6037,
-                lng: -0.1870,
-                zoom: 11.5,
-                bearing: 0,
-                pitch: 45
-            };
+            return { lat: 5.6037, lng: -0.1870, zoom: 11.5, bearing: 0, pitch: 45 };
         }
 
         const center = this.m_map.getCenter();
@@ -668,7 +682,7 @@ class CAndruavMap3D {
         });
     }
 
-    // Backward-compatible aliases (keep ONLY one copy)
+    // aliases
     fn_getView() {
         return this.fn_getViewState();
     }
@@ -676,7 +690,6 @@ class CAndruavMap3D {
     fn_applyView(state) {
         this.fn_applyViewState(state);
     }
-    // ---------------------------------------------------------------
 
     fn_show() {
         this.m_isVisible = true;

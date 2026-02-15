@@ -625,7 +625,6 @@ export function fn_updateMapToggleButton(is3DVisible) {
 }
 
 
-
 export function fn_toggleMapMode() {
 	const is3DVisible = $('#div_map3d_view').is(':visible');
 	if (is3DVisible === true) {
@@ -634,6 +633,8 @@ export function fn_toggleMapMode() {
 		fn_showMap3D();
 	}
 }
+
+
 
 export function fn_showMap() {
 	const map3dState = js_map3d.fn_getViewState();
