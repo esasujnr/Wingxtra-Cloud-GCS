@@ -23,7 +23,7 @@ class ClssCtrlLayout extends React.Component {
                     title={t('ctrlLayout:map.title')}
                     onClick={(e) => fn_showMap()}
                 >
-                    <strong>{t('ctrlLayout:map.label')}</strong>
+                    <strong>2D Map</strong>
                 </button>
                 <button
                     type="button"
@@ -32,7 +32,7 @@ class ClssCtrlLayout extends React.Component {
                     title={t('ctrlLayout:map3d.title')}
                     onClick={(e) => fn_showMap3D()}
                 >
-                    <strong>{t('ctrlLayout:map3d.label')}</strong>
+                    <strong>3D Map</strong>
                 </button>
                 <button
                     type="button"
