@@ -22,6 +22,7 @@ class CAndruavMap3D {
         this.m_altitudePathOverlaySvg = null;
         this.m_lastMissionPlans = null;
         this.m_lastActiveMissionId = null;
+        this.m_altitudeOverlayRenderQueued = false;
     }
 
     async fn_loadMapboxSdk() {
@@ -273,6 +274,33 @@ class CAndruavMap3D {
         }
     }
 
+    fn_scheduleAltitudePathOverlayRender() {
+        if (!this.m_map || !this.m_isReady) return;
+        if (this.m_altitudeOverlayRenderQueued === true) return;
+        this.m_altitudeOverlayRenderQueued = true;
+
+        window.requestAnimationFrame(() => {
+            this.m_altitudeOverlayRenderQueued = false;
+            this.fn_renderAltitudePathOverlay(this.m_lastMissionPlans, this.m_lastActiveMissionId);
+        });
+    }
+
+    fn_setMissionBaseLayerVisibility(isVisible) {
+        if (!this.m_map) return;
+
+        const visibility = isVisible === true ? 'visible' : 'none';
+        try {
+            if (this.m_map.getLayer(this.m_missionPointLayerId)) {
+                this.m_map.setLayoutProperty(this.m_missionPointLayerId, 'visibility', visibility);
+            }
+            if (this.m_map.getLayer(this.m_missionLineLayerId)) {
+                this.m_map.setLayoutProperty(this.m_missionLineLayerId, 'visibility', visibility);
+            }
+        } catch (_) {
+            // Ignore layer visibility failures.
+        }
+    }
+
     fn_renderAltitudePathOverlay(missionPlans, activeMissionId) {
         if (!this.m_map || !this.m_isReady) return;
 
@@ -498,7 +526,7 @@ class CAndruavMap3D {
         const geojson = this.fn_buildMissionGeoJson(missionPlans, activeMissionId);
         this.fn_applyMissionGeoJson(geojson);
         this.fn_syncAltitudeMarkers(missionPlans, activeMissionId);
-        this.fn_renderAltitudePathOverlay(missionPlans, activeMissionId);
+        this.fn_scheduleAltitudePathOverlayRender();
     }
 
     fn_setPlannerCreateWaypointHandler(handler) {
@@ -551,6 +579,8 @@ class CAndruavMap3D {
             }
             if (this.m_isVisible === true) {
                 this.m_map.resize();
+                this.fn_setMissionBaseLayerVisibility(false);
+                this.fn_scheduleAltitudePathOverlayRender();
             }
         });
 
@@ -569,14 +599,18 @@ class CAndruavMap3D {
             });
         });
 
+        this.m_map.on('move', () => {
+            this.fn_scheduleAltitudePathOverlayRender();
+        });
+
         this.m_map.on('moveend', () => {
             const view = this.fn_getView();
             if (view) this.m_lastView = view;
-            this.fn_renderAltitudePathOverlay(this.m_lastMissionPlans, this.m_lastActiveMissionId);
+            this.fn_scheduleAltitudePathOverlayRender();
         });
 
         this.m_map.on('resize', () => {
-            this.fn_renderAltitudePathOverlay(this.m_lastMissionPlans, this.m_lastActiveMissionId);
+            this.fn_scheduleAltitudePathOverlayRender();
         });
     }
 
@@ -639,12 +673,17 @@ class CAndruavMap3D {
 
     fn_show() {
         this.m_isVisible = true;
-        if (this.m_map) this.m_map.resize();
+        if (this.m_map) {
+            this.m_map.resize();
+            this.fn_setMissionBaseLayerVisibility(false);
+            this.fn_scheduleAltitudePathOverlayRender();
+        }
     }
 
     fn_hide() {
         this.m_isVisible = false;
         this.m_pendingViewState = null;
+        this.fn_setMissionBaseLayerVisibility(true);
         this.fn_clearMissionAltitudeMarkers();
         this.fn_clearAltitudePathOverlay();
     }
