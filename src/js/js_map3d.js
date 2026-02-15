@@ -44,7 +44,7 @@ class CAndruavMap3D {
     fn_getBuildingOpacity() {
         const configured = Number(js_siteConfig.CONST_MAPBOX_3D_BUILDING_OPACITY);
         if (!Number.isFinite(configured)) return 1.0;
-        return Math.min(0.95, Math.max(0.05, configured));
+        return Math.min(1.0, Math.max(0.05, configured));
     }
 
     fn_applyTerrain() {
@@ -68,44 +68,47 @@ class CAndruavMap3D {
         });
     }
 
+    fn_getFirstSymbolLayerId() {
+        if (!this.m_map) return undefined;
+        const layers = this.m_map.getStyle()?.layers || [];
+        const symbolLayer = layers.find((layer) => layer.type === 'symbol');
+        return symbolLayer?.id;
+    }
+
     fn_applyBuildings() {
         if (!this.m_map) return;
 
         const buildingOpacity = this.fn_getBuildingOpacity();
         const buildingColor = js_siteConfig.CONST_MAPBOX_3D_BUILDING_COLOR || '#e0e0e0';
-        const style = this.m_map.getStyle();
-        const layers = style?.layers || [];
+        const beforeLayerId = this.fn_getFirstSymbolLayerId();
 
-        const existingBuildingLayerIds = layers
-            .filter((layer) => layer.type === 'fill-extrusion' && layer.id.toLowerCase().includes('building'))
-            .map((layer) => layer.id);
-
-        if (existingBuildingLayerIds.length > 0) {
-            existingBuildingLayerIds.forEach((layerId) => {
-                this.m_map.setLayoutProperty(layerId, 'visibility', 'visible');
-                this.m_map.setPaintProperty(layerId, 'fill-extrusion-opacity', buildingOpacity);
-                this.m_map.setPaintProperty(layerId, 'fill-extrusion-color', buildingColor);
-                this.m_map.setPaintProperty(layerId, 'fill-extrusion-height', ['coalesce', ['get', 'height'], 10]);
-                this.m_map.setPaintProperty(layerId, 'fill-extrusion-base', ['coalesce', ['get', 'min_height'], 0]);
+        if (!this.m_map.getSource('mapbox-buildings')) {
+            this.m_map.addSource('mapbox-buildings', {
+                type: 'vector',
+                url: 'mapbox://mapbox.mapbox-streets-v8'
             });
+        }
+
+        if (this.m_map.getLayer('add-3d-buildings')) {
+            this.m_map.setLayoutProperty('add-3d-buildings', 'visibility', 'visible');
+            this.m_map.setPaintProperty('add-3d-buildings', 'fill-extrusion-opacity', buildingOpacity);
+            this.m_map.setPaintProperty('add-3d-buildings', 'fill-extrusion-color', buildingColor);
             return;
         }
 
-        if (!this.m_map.getLayer('add-3d-buildings') && this.m_map.getSource('composite')) {
-            this.m_map.addLayer({
-                id: 'add-3d-buildings',
-                source: 'composite',
-                'source-layer': 'building',
-                type: 'fill-extrusion',
-                minzoom: 10,
-                paint: {
-                    'fill-extrusion-color': buildingColor,
-                    'fill-extrusion-height': ['coalesce', ['get', 'height'], 10],
-                    'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
-                    'fill-extrusion-opacity': buildingOpacity
-                }
-            });
-        }
+        this.m_map.addLayer({
+            id: 'add-3d-buildings',
+            source: 'mapbox-buildings',
+            'source-layer': 'building',
+            type: 'fill-extrusion',
+            minzoom: 10,
+            paint: {
+                'fill-extrusion-color': buildingColor,
+                'fill-extrusion-height': ['coalesce', ['get', 'height'], 10],
+                'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
+                'fill-extrusion-opacity': buildingOpacity
+            }
+        }, beforeLayerId);
     }
 
     async fn_initMap(containerId) {
