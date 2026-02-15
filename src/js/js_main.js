@@ -240,10 +240,6 @@ function fn_handleKeyBoard() {
 					fn_showVideoMainTab();
 				}
 
-				if (key >= '1' && key <= '6') {
-					js_localStorage.fn_setDisplayMode(parseInt(parseInt(key) - 1));
-					fn_applyControl(parseInt(key));
-				}
 			}
 		}
 	});
@@ -561,89 +557,13 @@ function fn_activateVehicleCardOnly() {
 	$('#btn_showMap3D').hide();
 }
 
-export function fn_applyControl(v_small_mode) {
-	let v_display_mode = js_localStorage.fn_getDisplayMode();
-
-	if (v_display_mode == null) v_display_mode = 0;
-
-	if (v_small_mode === true) {
-		switch (v_display_mode % 4) {
-			case 0:
-				// Classic View
-				fn_activateClassicalView();
-				$('#btn_showControl').html("<strong>DISPLAY-1</strong>");
-
-				break;
-
-			case 1:
-				// Map or Camera Only
-				fn_activateMapCameraSectionOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-2</strong>");
-				break;
-
-
-			case 2:
-				// Vehicle List
-				fn_activateFixedVehicleListOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-3</strong>");
-				break;
-
-			case 3:
-				// Vehicle Control Cards
-				fn_activateVehicleCardOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-4</strong>");
-				break;
-
-			default:
-				break;
-		}
-	}
-	else {
-		switch (v_display_mode % 6) {
-			case 0:
-				// Classic View
-				fn_activateClassicalView();
-				$('#btn_showControl').html("<strong>DISPLAY-1</strong>");
-				break;
-
-			case 1:
-				fn_activateMapCameraSectionOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-2</strong>");
-				break;
-
-
-			case 2:
-				fn_activateMapCameraSectionAndFloatingList();
-				$('#btn_showControl').html("<strong>DISPLAY-3</strong>");
-				break;
-
-			case 3:
-				fn_activateFixedVehicleListOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-4</strong>");
-				break;
-
-			case 4:
-				fn_activateVehicleCardOnly();
-				$('#btn_showControl').html("<strong>DISPLAY-5</strong>");
-				break;
-
-			case 5:
-				fn_activateAllViews();
-				$('#btn_showControl').html("<strong>DISPLAY-6</strong>");
-				break;
-
-			default:
-				break;
-		}
-	}
-
-	js_localStorage.fn_setDisplayMode(v_display_mode);
+export function fn_applyControl() {
+	fn_activateClassicalView();
 	js_leafletmap.fn_invalidateSize();
 }
 
-export function fn_showControl(v_small_mode) {
-	js_localStorage.fn_setDisplayMode(parseInt(js_localStorage.fn_getDisplayMode()) + 1);
-	fn_applyControl(v_small_mode);
+export function fn_showControl() {
+	fn_applyControl();
 }
 
 
@@ -3394,10 +3314,6 @@ export function fn_on_ready() {
 
 		$('#btn_showVideo').click(
 			fn_showVideoMainTab
-		);
-
-		$('#btn_showControl').click(
-			fn_showControl
 		);
 
 

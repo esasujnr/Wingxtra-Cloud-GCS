@@ -149,6 +149,11 @@ class CAndruavMap3D {
                 this.m_map.resize();
             }
         });
+
+        this.m_map.on('moveend', () => {
+            const view = this.fn_getView();
+            if (view) this.m_lastView = view;
+        });
     }
 
     fn_getViewState() {
@@ -204,6 +209,33 @@ class CAndruavMap3D {
     fn_hide() {
         this.m_isVisible = false;
         this.m_pendingViewState = null;
+    }
+
+    fn_getView() {
+        if (!this.m_map || !this.m_isReady) return this.m_lastView;
+        const center = this.m_map.getCenter();
+        return {
+            lat: center.lat,
+            lng: center.lng,
+            zoom: this.m_map.getZoom(),
+            bearing: this.m_map.getBearing(),
+            pitch: this.m_map.getPitch()
+        };
+    }
+
+    fn_setView(view) {
+        if (!view) return;
+
+        this.m_lastView = { ...this.m_lastView, ...view };
+
+        if (!this.m_map || !this.m_isReady) return;
+
+        this.m_map.jumpTo({
+            center: [this.m_lastView.lng, this.m_lastView.lat],
+            zoom: this.m_lastView.zoom ?? this.m_map.getZoom(),
+            bearing: this.m_lastView.bearing ?? this.m_map.getBearing(),
+            pitch: this.m_lastView.pitch ?? this.m_map.getPitch()
+        });
     }
 
     fn_focusUnit(unit) {
