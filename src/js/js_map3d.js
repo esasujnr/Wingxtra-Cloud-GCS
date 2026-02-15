@@ -55,7 +55,7 @@ class CAndruavMap3D {
 
         this.m_map = new mapboxgl.Map({
             container: containerId,
-            style: js_siteConfig.CONST_MAPBOX_STYLE || 'mapbox://styles/mapbox/standard',
+            style: js_siteConfig.CONST_MAPBOX_STYLE || 'mapbox://styles/mapbox/standard-satellite',
             center: [24.767945, 42.144913],
             zoom: 15.47,
             pitch: 53,
@@ -74,10 +74,10 @@ class CAndruavMap3D {
                     type: 'fill-extrusion',
                     minzoom: 15,
                     paint: {
-                        'fill-extrusion-color': '#aaa',
+                        'fill-extrusion-color': js_siteConfig.CONST_MAPBOX_3D_BUILDING_COLOR || '#b7d1e6',
                         'fill-extrusion-height': ['get', 'height'],
                         'fill-extrusion-base': ['get', 'min_height'],
-                        'fill-extrusion-opacity': 0.6
+                        'fill-extrusion-opacity': js_siteConfig.CONST_MAPBOX_3D_BUILDING_OPACITY ?? 0.22
                     }
                 });
             }
