@@ -17,6 +17,7 @@ class CAndruavMap3D {
         this.m_plannerCreateEnabled = false;
         this.m_plannerCreateWaypointHandler = null;
         this.m_plannerSelectWaypointHandler = null;
+
         this.m_missionLayerHandlersBound = false;
         this.m_missionAltitudeMarkers = new Map();
         this.m_altitudePathOverlaySvg = null;
@@ -128,6 +129,22 @@ class CAndruavMap3D {
         }, beforeLayerId);
     }
 
+    fn_setMissionBaseLayerVisibility(isHidden) {
+        if (!this.m_map) return;
+
+        const visibility = isHidden === true ? 'none' : 'visible';
+        try {
+            if (this.m_map.getLayer(this.m_missionPointLayerId)) {
+                this.m_map.setLayoutProperty(this.m_missionPointLayerId, 'visibility', visibility);
+            }
+            if (this.m_map.getLayer(this.m_missionLineLayerId)) {
+                this.m_map.setLayoutProperty(this.m_missionLineLayerId, 'visibility', visibility);
+            }
+        } catch (_) {
+            // ignore
+        }
+    }
+
     fn_ensureMissionLayers() {
         if (!this.m_map) return;
 
@@ -159,7 +176,7 @@ class CAndruavMap3D {
             this.m_map.setLayoutProperty(this.m_missionLineLayerId, 'line-elevation-reference', 'ground');
             this.m_map.setPaintProperty(this.m_missionLineLayerId, 'line-z-offset', ['coalesce', ['get', 'avg_alt_m'], 0]);
         } catch (_) {
-            // Optional style properties are not available in all mapbox builds.
+            // optional properties not available in all builds
         }
 
         if (!this.m_map.getLayer(this.m_missionPointLayerId)) {
@@ -177,6 +194,7 @@ class CAndruavMap3D {
             });
         }
 
+        // NOTE: if map is visible, mission layers should show; if hidden, hide them
         this.fn_setMissionBaseLayerVisibility(this.m_isVisible !== true);
 
         this.fn_bindMissionLayerInteractions();
@@ -187,16 +205,15 @@ class CAndruavMap3D {
         }
     }
 
-
     fn_bindMissionLayerInteractions() {
         if (!this.m_map) return;
         if (this.m_missionLayerHandlersBound === true) return;
         if (!this.m_map.getLayer(this.m_missionPointLayerId)) return;
 
-        this.m_map.on('click', this.m_missionPointLayerId, (event) => {
+        this.m_map.on('click', this.m_missionPointLayerId, (evt) => {
             if (typeof this.m_plannerSelectWaypointHandler !== 'function') return;
 
-            const feature = event?.features?.[0];
+            const feature = evt?.features?.[0];
             const missionId = feature?.properties?.missionId;
             const order = Number(feature?.properties?.order);
             if (missionId == null || !Number.isFinite(order) || order <= 0) return;
@@ -231,14 +248,9 @@ class CAndruavMap3D {
         src.setData(geojson);
     }
 
-
     fn_clearMissionAltitudeMarkers() {
         this.m_missionAltitudeMarkers.forEach((entry) => {
-            try {
-                entry.marker.remove();
-            } catch (_) {
-                // ignore marker cleanup errors
-            }
+            try { entry.marker.remove(); } catch (_) { /* ignore */ }
         });
         this.m_missionAltitudeMarkers.clear();
     }
@@ -287,22 +299,6 @@ class CAndruavMap3D {
         });
     }
 
-    fn_setMissionBaseLayerVisibility(isVisible) {
-        if (!this.m_map) return;
-
-        const visibility = isVisible === true ? 'visible' : 'none';
-        try {
-            if (this.m_map.getLayer(this.m_missionPointLayerId)) {
-                this.m_map.setLayoutProperty(this.m_missionPointLayerId, 'visibility', visibility);
-            }
-            if (this.m_map.getLayer(this.m_missionLineLayerId)) {
-                this.m_map.setLayoutProperty(this.m_missionLineLayerId, 'visibility', visibility);
-            }
-        } catch (_) {
-            // Ignore layer visibility failures.
-        }
-    }
-
     fn_renderAltitudePathOverlay(missionPlans, activeMissionId) {
         if (!this.m_map || !this.m_isReady) return;
 
@@ -319,6 +315,7 @@ class CAndruavMap3D {
         const plans = missionPlans ? Object.entries(missionPlans) : [];
         for (const [missionId, mission] of plans) {
             if (!mission || !Array.isArray(mission.m_all_mission_items_shaps)) continue;
+
             const items = mission.m_all_mission_items_shaps
                 .filter((shape) => shape && typeof shape.getLatLng === 'function')
                 .slice()
@@ -362,8 +359,7 @@ class CAndruavMap3D {
 
         const stem = document.createElement('div');
         stem.className = 'css_map3d_altitude_stem';
-        const stemHeight = this.fn_getStemHeightPx(altitudeMeters);
-        stem.style.height = `${stemHeight}px`;
+        stem.style.height = `${this.fn_getStemHeightPx(altitudeMeters)}px`;
 
         const head = document.createElement('div');
         head.className = 'css_map3d_altitude_head';
@@ -404,12 +400,7 @@ class CAndruavMap3D {
                         existing.marker.setLngLat([ll.lng, ll.lat]);
                         return;
                     }
-
-                    try {
-                        existing.marker.remove();
-                    } catch (_) {
-                        // ignore marker cleanup errors
-                    }
+                    try { existing.marker.remove(); } catch (_) { /* ignore */ }
                     this.m_missionAltitudeMarkers.delete(key);
                 }
 
@@ -420,10 +411,7 @@ class CAndruavMap3D {
                     }
                 });
 
-                const marker = new window.mapboxgl.Marker({
-                    element,
-                    anchor: 'bottom'
-                })
+                const marker = new window.mapboxgl.Marker({ element, anchor: 'bottom' })
                     .setLngLat([ll.lng, ll.lat])
                     .addTo(this.m_map);
 
@@ -437,27 +425,17 @@ class CAndruavMap3D {
 
         for (const [key, value] of this.m_missionAltitudeMarkers.entries()) {
             if (nextKeys.has(key)) continue;
-            try {
-                value.marker.remove();
-            } catch (_) {
-                // ignore marker cleanup errors
-            }
+            try { value.marker.remove(); } catch (_) { /* ignore */ }
             this.m_missionAltitudeMarkers.delete(key);
         }
     }
 
     fn_buildMissionGeoJson(missionPlans, activeMissionId) {
         const features = [];
-        if (!missionPlans) {
-            return { type: 'FeatureCollection', features };
-        }
+        if (!missionPlans) return { type: 'FeatureCollection', features };
 
-        const entries = Object.entries(missionPlans);
-
-        for (const [missionId, mission] of entries) {
-            if (!mission || !mission.m_all_mission_items_shaps || mission.m_all_mission_items_shaps.length === 0) {
-                continue;
-            }
+        for (const [missionId, mission] of Object.entries(missionPlans)) {
+            if (!mission || !Array.isArray(mission.m_all_mission_items_shaps) || mission.m_all_mission_items_shaps.length === 0) continue;
 
             const isActive = String(missionId) === String(activeMissionId);
             const color = mission.m_pathColor || '#00d1b2';
@@ -466,17 +444,14 @@ class CAndruavMap3D {
             mission.m_all_mission_items_shaps.forEach((shape) => {
                 if (!shape || typeof shape.getLatLng !== 'function') return;
                 const ll = shape.getLatLng();
-                if (ll == null || ll.lat == null || ll.lng == null) return;
+                if (!ll || ll.lat == null || ll.lng == null) return;
 
                 const alt_m = this.fn_getShapeAltitudeMeters(shape);
                 points.push({ ll, alt_m, order: Number(shape.order || 0) });
 
                 features.push({
                     type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [ll.lng, ll.lat]
-                    },
+                    geometry: { type: 'Point', coordinates: [ll.lng, ll.lat] },
                     properties: {
                         missionId: String(missionId),
                         order: Number(shape.order || 0),
@@ -515,10 +490,7 @@ class CAndruavMap3D {
             }
         }
 
-        return {
-            type: 'FeatureCollection',
-            features
-        };
+        return { type: 'FeatureCollection', features };
     }
 
     fn_syncMissionPlans(missionPlans, activeMissionId) {
@@ -527,6 +499,7 @@ class CAndruavMap3D {
 
         const geojson = this.fn_buildMissionGeoJson(missionPlans, activeMissionId);
         this.fn_applyMissionGeoJson(geojson);
+
         this.fn_syncAltitudeMarkers(missionPlans, activeMissionId);
         this.fn_scheduleAltitudePathOverlayRender();
     }
@@ -534,7 +507,6 @@ class CAndruavMap3D {
     fn_setPlannerCreateWaypointHandler(handler) {
         this.m_plannerCreateWaypointHandler = handler;
     }
-
 
     fn_setPlannerSelectWaypointHandler(handler) {
         this.m_plannerSelectWaypointHandler = handler;
@@ -579,39 +551,27 @@ class CAndruavMap3D {
                 this.fn_applyViewState(this.m_pendingViewState);
                 this.m_pendingViewState = null;
             }
+
             if (this.m_isVisible === true) {
                 this.m_map.resize();
                 this.fn_setMissionBaseLayerVisibility(false);
                 this.fn_scheduleAltitudePathOverlayRender();
             }
-
-            this.m_plannerCreateWaypointHandler({
-                lat: event.lngLat.lat,
-                lng: event.lngLat.lng
-            });
         });
 
+        // single move handler (you had it duplicated)
         this.m_map.on('move', () => {
             this.fn_scheduleAltitudePathOverlayRender();
         });
 
-        this.m_map.on('click', (event) => {
-            if (this.m_plannerCreateEnabled !== true || typeof this.m_plannerCreateWaypointHandler !== 'function') {
-                return;
-            }
-
-            if (event?.originalEvent?.shiftKey !== true) {
-                return;
-            }
+        this.m_map.on('click', (evt) => {
+            if (this.m_plannerCreateEnabled !== true || typeof this.m_plannerCreateWaypointHandler !== 'function') return;
+            if (evt?.originalEvent?.shiftKey !== true) return;
 
             this.m_plannerCreateWaypointHandler({
-                lat: event.lngLat.lat,
-                lng: event.lngLat.lng
+                lat: evt.lngLat.lat,
+                lng: evt.lngLat.lng
             });
-        });
-
-        this.m_map.on('move', () => {
-            this.fn_scheduleAltitudePathOverlayRender();
         });
 
         this.m_map.on('render', () => {
@@ -630,16 +590,10 @@ class CAndruavMap3D {
         });
     }
 
-    // ---------- VIEW STATE (single canonical implementation) ----------
+    // ---------- VIEW STATE ----------
     fn_getViewState() {
         if (!this.m_map || !this.m_isReady) {
-            return {
-                lat: 5.6037,
-                lng: -0.1870,
-                zoom: 11.5,
-                bearing: 0,
-                pitch: 45
-            };
+            return { lat: 5.6037, lng: -0.1870, zoom: 11.5, bearing: 0, pitch: 45 };
         }
 
         const center = this.m_map.getCenter();
@@ -651,17 +605,6 @@ class CAndruavMap3D {
             pitch: this.m_map.getPitch()
         };
     }
-
-    // Backward-compatible aliases for any stale/hot-reload references.
-    fn_getView() {
-        return this.fn_getViewState();
-    }
-
-    fn_applyView(state) {
-        this.fn_applyViewState(state);
-    }
-
-
 
     fn_applyViewState(state) {
         if (state == null) return;
@@ -685,6 +628,15 @@ class CAndruavMap3D {
             bearing: Number.isFinite(bearing) ? bearing : this.m_map.getBearing(),
             pitch: Number.isFinite(pitch) ? pitch : this.m_map.getPitch()
         });
+    }
+
+    // aliases
+    fn_getView() {
+        return this.fn_getViewState();
+    }
+
+    fn_applyView(state) {
+        this.fn_applyViewState(state);
     }
 
     fn_show() {
