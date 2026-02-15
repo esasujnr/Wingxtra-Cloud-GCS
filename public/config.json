@@ -78,7 +78,10 @@
     },
 
     "CONST_MAPBOX_ACCESS_TOKEN": "pk.eyJ1IjoiZXNhc3VqbnIiLCJhIjoiY203cTh1dGVjMHE1NjJxcXlhcDA2ZGJ3MyJ9.N5bylT9_go6TLi_s8Ve5uw",
-    "CONST_MAPBOX_STYLE": "mapbox://styles/mapbox/standard",
+    "CONST_MAPBOX_STYLE": "mapbox://styles/mapbox/standard-satellite",
+    "CONST_MAPBOX_3D_BUILDING_OPACITY": 1.0,
+    "CONST_MAPBOX_TERRAIN_EXAGGERATION": 1.0,
+    "CONST_MAPBOX_3D_BUILDING_COLOR": "#b7d1e6",
 
     // CHOOSE YOUR MAP SOURCE
     //"CONST_MAP_LEAFLET_URL": "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiaHNhYWQiLCJhIjoiY2tqZnIwNXRuMndvdTJ4cnV0ODQ4djZ3NiJ9.LKojA3YMrG34L93jRThEGQ",
