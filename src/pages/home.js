@@ -28,7 +28,7 @@ import ClssAndruavUnitListArray from '../components/unit_controls/jsc_unitContro
 import ClssUnitParametersList from '../components/dialogs/jsc_unitParametersList.jsx';
 import ClssConfigGenerator from '../components/jsc_config_generator.jsx'
 import { ClssCVideoControl } from '../components/video/jsc_videoDisplayComponent.jsx';
-import { fn_on_ready, fn_showSettings, fn_showMap, fn_showMap3D, fn_showVideoMainTab } from '../js/js_main';
+import { fn_on_ready, fn_showSettings, fn_toggleMapMode, fn_showVideoMainTab } from '../js/js_main';
 
 const Home = () => {
   const { t } = useTranslation('home'); // Use home namespace
@@ -73,19 +73,10 @@ const Home = () => {
               <div id="map_overlay_right_tools" className="css_map_overlay_right_tools">
                 <button
                   type="button"
-                  id="btn_showMap"
-                  className="btn btn-danger btn-sm bi bi-map"
-                  title="Show 2D map"
-                  onClick={() => fn_showMap()}
-                >
-                  <strong>2D Map</strong>
-                </button>
-                <button
-                  type="button"
-                  id="btn_showMap3D"
+                  id="btn_toggleMapMode"
                   className="btn btn-secondary btn-sm bi bi-badge-3d"
-                  title="Show 3D map"
-                  onClick={() => fn_showMap3D()}
+                  title="Toggle 2D/3D map"
+                  onClick={() => fn_toggleMapMode()}
                 >
                   <strong>3D Map</strong>
                 </button>

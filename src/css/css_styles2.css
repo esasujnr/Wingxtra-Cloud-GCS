@@ -1603,3 +1603,17 @@ div#displays
   border-radius: 6px;
   overflow: hidden;
 }
+
+/* Ensure camera overlay is visible when toggled */
+#div_video_control.show,
+#div_video_control[style*="display: block"],
+#div_video_control[style*="display:block"] {
+  display: block !important;
+}
+
+#div_video_control {
+  height: 320px;
+  min-height: 220px;
+}
+
+#div_video_control { z-index: 1202; }
