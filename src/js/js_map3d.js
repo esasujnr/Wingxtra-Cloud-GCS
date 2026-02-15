@@ -293,7 +293,6 @@ class CAndruavMap3D {
                 this.fn_applyViewState(this.m_pendingViewState);
                 this.m_pendingViewState = null;
             }
-
             if (this.m_isVisible === true) {
                 this.m_map.resize();
             }
@@ -342,6 +341,36 @@ class CAndruavMap3D {
         };
     }
 
+    // Backward-compatible aliases for any stale/hot-reload references.
+    fn_getView() {
+        return this.fn_getViewState();
+    }
+
+    fn_applyView(state) {
+        this.fn_applyViewState(state);
+    }
+
+    fn_getViewState() {
+        if (!this.m_map || !this.m_isReady) {
+            return {
+                lat: 5.6037,
+                lng: -0.1870,
+                zoom: 11.5,
+                bearing: 0,
+                pitch: 45
+            };
+        }
+
+        const center = this.m_map.getCenter();
+        return {
+            lat: center.lat,
+            lng: center.lng,
+            zoom: this.m_map.getZoom(),
+            bearing: this.m_map.getBearing(),
+            pitch: this.m_map.getPitch()
+        };
+    }
+
     fn_applyViewState(state) {
         if (state == null) return;
 
@@ -365,16 +394,6 @@ class CAndruavMap3D {
             pitch: Number.isFinite(pitch) ? pitch : this.m_map.getPitch()
         });
     }
-
-    // Backward-compatible aliases (keep ONLY one copy)
-    fn_getView() {
-        return this.fn_getViewState();
-    }
-
-    fn_applyView(state) {
-        this.fn_applyViewState(state);
-    }
-    // ---------------------------------------------------------------
 
     fn_show() {
         this.m_isVisible = true;
