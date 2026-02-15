@@ -43,7 +43,7 @@ class CAndruavMap3D {
 
     fn_getBuildingOpacity() {
         const configured = Number(js_siteConfig.CONST_MAPBOX_3D_BUILDING_OPACITY);
-        if (!Number.isFinite(configured)) return 0.35;
+        if (!Number.isFinite(configured)) return 1.0;
         return Math.min(0.95, Math.max(0.05, configured));
     }
 
@@ -72,7 +72,7 @@ class CAndruavMap3D {
         if (!this.m_map) return;
 
         const buildingOpacity = this.fn_getBuildingOpacity();
-        const buildingColor = js_siteConfig.CONST_MAPBOX_3D_BUILDING_COLOR || '#b7d1e6';
+        const buildingColor = js_siteConfig.CONST_MAPBOX_3D_BUILDING_COLOR || '#e0e0e0';
         const style = this.m_map.getStyle();
         const layers = style?.layers || [];
 
@@ -85,6 +85,8 @@ class CAndruavMap3D {
                 this.m_map.setLayoutProperty(layerId, 'visibility', 'visible');
                 this.m_map.setPaintProperty(layerId, 'fill-extrusion-opacity', buildingOpacity);
                 this.m_map.setPaintProperty(layerId, 'fill-extrusion-color', buildingColor);
+                this.m_map.setPaintProperty(layerId, 'fill-extrusion-height', ['coalesce', ['get', 'height'], 10]);
+                this.m_map.setPaintProperty(layerId, 'fill-extrusion-base', ['coalesce', ['get', 'min_height'], 0]);
             });
             return;
         }
@@ -94,12 +96,11 @@ class CAndruavMap3D {
                 id: 'add-3d-buildings',
                 source: 'composite',
                 'source-layer': 'building',
-                filter: ['==', 'extrude', 'true'],
                 type: 'fill-extrusion',
-                minzoom: 13,
+                minzoom: 10,
                 paint: {
                     'fill-extrusion-color': buildingColor,
-                    'fill-extrusion-height': ['coalesce', ['get', 'height'], 0],
+                    'fill-extrusion-height': ['coalesce', ['get', 'height'], 10],
                     'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
                     'fill-extrusion-opacity': buildingOpacity
                 }

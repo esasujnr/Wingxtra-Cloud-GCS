@@ -54,7 +54,7 @@ export let CONST_MAP_LEAFLET_URL = "https://api.mapbox.com/styles/v1/mapbox/sate
 
 export let CONST_MAPBOX_ACCESS_TOKEN = '';
 export let CONST_MAPBOX_STYLE = 'mapbox://styles/mapbox/standard-satellite';
-export let CONST_MAPBOX_3D_BUILDING_OPACITY = 0.35;
+export let CONST_MAPBOX_3D_BUILDING_OPACITY = 1.0;
 export let CONST_MAPBOX_TERRAIN_EXAGGERATION = 1.0;
 export let CONST_MAPBOX_3D_BUILDING_COLOR = '#b7d1e6';
 
