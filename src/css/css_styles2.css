@@ -1617,3 +1617,13 @@ div#displays
 }
 
 #div_video_control { z-index: 1202; }
+
+/* Wingxtra brand text: 30% smaller and stable on hover */
+.css_brand_text_static,
+.css_brand_text_static:hover,
+.css_brand_text_static:focus {
+  font-size: 70%;
+  color: inherit !important;
+  text-decoration: none !important;
+  opacity: 1 !important;
+}
