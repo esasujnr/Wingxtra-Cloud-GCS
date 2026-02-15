@@ -1112,7 +1112,7 @@ export function fn_openFenceManager(p_partyID) {
 		return;
 	}
 
-	window.open('mapeditor?zoom=18&lat=' + p_andruavUnit.m_Nav_Info.p_Location.lat + '&lng=' + p_andruavUnit.m_Nav_Info.p_Location.lng);
+	window.location.assign('mapeditor?zoom=18&lat=' + p_andruavUnit.m_Nav_Info.p_Location.lat + '&lng=' + p_andruavUnit.m_Nav_Info.p_Location.lng);
 	return false;
 }
 
@@ -2960,7 +2960,7 @@ function showGeoFenceInfo(p_lat, p_lng, geoFenceInfo) {
 	}
 
 	let v_contentString = "<p class='img-rounded " + _style + "'><strong>" + geoFenceInfo.m_geoFenceName + _icon + "</strong></p><span class='help-block'>" + p_lat.toFixed(7) + " " + p_lng.toFixed(7) + "</span>";
-	v_contentString += "<div class='row'><div class= 'col-sm-12'><p class='cursor_hand bg-success link-white si-07x' onclick=\"window.open('./mapeditor?zoom=" + js_leafletmap.fn_getZoom() + "&lat=" + p_lat + "&lng=" + p_lng + "', '_blank')\"," + js_globals.CONST_DEFAULT_ALTITUDE + "," + js_globals.CONST_DEFAULT_RADIUS + "," + 10 + " )\">Open Geo Fence Here</p></div></div>";
+	v_contentString += "<div class='row'><div class= 'col-sm-12'><p class='cursor_hand bg-success link-white si-07x' onclick=\"window.location.assign('./mapeditor?zoom=" + js_leafletmap.fn_getZoom() + "&lat=" + p_lat + "&lng=" + p_lng + "')\"," + js_globals.CONST_DEFAULT_ALTITUDE + "," + js_globals.CONST_DEFAULT_RADIUS + "," + 10 + " )\">Open Geo Fence Here</p></div></div>";
 
 	infowindow = js_leafletmap.fn_showInfoWindow(infowindow, v_contentString, p_lat, p_lng);
 
