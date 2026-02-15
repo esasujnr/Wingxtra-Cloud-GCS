@@ -291,7 +291,7 @@ class CLocalStorage {
     }
 
     fn_getSelectedTheme() {
-        return this._getValue(js_globals.LS_SELECTED_THEME, 'default');
+        return this._getValue(js_globals.LS_SELECTED_THEME, 'slate');
     }
 
     fn_setWebConnectorEnabled(value) {
