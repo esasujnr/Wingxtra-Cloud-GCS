@@ -9,7 +9,7 @@ class ClssLanguageSwitcher extends React.Component {
     changeLanguage = (lang) => {
         this.props.i18n.changeLanguage(lang);
         document.documentElement.lang = lang;
-        document.title = this.props.i18n.t('title');
+        document.title = js_siteConfig.CONST_TITLE;
         js_eventEmitter.fn_dispatch(js_event.EE_Language_Changed);
     };
 

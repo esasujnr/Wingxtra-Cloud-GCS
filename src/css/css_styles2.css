@@ -1406,3 +1406,161 @@ div#displays
   z-index: 1000;
   height: 30px; /* Adjust based on actual footer height */
 }
+.css_cockpit_statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  background: rgba(9, 22, 38, 0.92);
+  border: 1px solid #1f4a6d;
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-width: 520px;
+}
+
+.css_cockpit_datetime {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9fd3ff;
+  font-family: 'Consolas', 'Menlo', monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.css_cockpit_time {
+  color: #7ed7ff;
+}
+
+.css_cockpit_date {
+  color: #b8d6ee;
+}
+
+.css_vehicle_alert_space {
+  min-width: 260px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px dashed #2e739f;
+  color: #f6c667;
+  background: rgba(12, 32, 54, 0.8);
+  font-size: 11px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#settings_panel_toggle_wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+#btn_toggleSettingsChevron {
+  min-width: 38px !important;
+  height: 26px !important;
+  line-height: 12px;
+  padding: 0 8px;
+  font-weight: 900;
+}
+
+/* Cockpit-like top indicators */
+#main_btn_group {
+  position: static;
+}
+
+#vehicle_alert_space.css_vehicle_alert_space {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  min-width: 360px;
+  text-align: center;
+}
+
+#main_btn_group .css_cockpit_datetime {
+  position: fixed;
+  top: 10px;
+  right: 90px;
+  z-index: 1201;
+  background: rgba(9, 22, 38, 0.92);
+  border: 1px solid #1f4a6d;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+/* Map overlays */
+.css_map_overlay_left_tools,
+.css_map_overlay_right_tools {
+  position: absolute;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.css_map_overlay_left_tools {
+  top: 72px;
+  left: 16px;
+}
+
+.css_map_overlay_right_tools {
+  top: 72px;
+  right: 16px;
+  align-items: flex-end;
+}
+
+.css_map_overlay_left_tools .btn,
+.css_map_overlay_right_tools .btn {
+  pointer-events: auto;
+  min-width: 120px;
+}
+
+#btn_missionPlanner {
+  min-width: 92px !important;
+}
+
+/* Keep map controls over map and hide Leaflet zoom +/- */
+#displays {
+  position: relative;
+}
+
+.leaflet-control-zoom {
+  display: none !important;
+}
+
+/* Map overlay controls all on top-left */
+.css_map_overlay_left_tools {
+  top: 86px;
+  left: 16px;
+}
+
+.css_map_overlay_right_tools {
+  top: 136px;
+  left: 16px;
+  right: auto;
+  align-items: flex-start;
+}
+
+/* Settings chevron attached to settings card */
+#settings_panel_toggle_wrap {
+  margin-bottom: 0;
+}
+
+#btn_toggleSettingsChevron {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  width: 100%;
+  max-width: 100%;
+  color: #b8d6ee;
+  background: rgba(9, 22, 38, 0.92);
+  border-color: #1f4a6d;
+}
+
+#settings_menu_panel .card {
+  margin-top: 0 !important;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}

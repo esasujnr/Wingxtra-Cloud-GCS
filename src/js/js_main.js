@@ -683,11 +683,18 @@ export function fn_showMap3D() {
 }
 
 export function fn_showSettings() {
-	$('#andruavUnits_in').toggle();
+	const panel = $('#settings_menu_panel');
+	const wasVisible = panel.is(':visible');
+	panel.toggle();
 
-	$([document.documentElement, document.body]).animate({
-		scrollTop: $("#row_2").offset().top
-	}, 100);
+	const isVisible = panel.is(':visible');
+	$('#btn_toggleSettingsChevron').attr('aria-expanded', isVisible ? 'true' : 'false');
+
+	if (wasVisible === false && $('#row_2').length > 0) {
+		$([document.documentElement, document.body]).animate({
+			scrollTop: $("#row_2").offset().top
+		}, 100);
+	}
 }
 
 function onWEBRTCSessionStarted(c_talk) {

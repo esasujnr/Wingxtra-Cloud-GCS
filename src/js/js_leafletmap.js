@@ -133,8 +133,8 @@ class CLeafLetAndruavMap {
 
 
         this.m_Map = L.map(p_mapelement, {
-            center: [51.505, -0.09],
-            zoom: 13,
+            center: [1.2, 20.0],
+            zoom: 4,
             doubleClickZoom: false // Disable the default double-click zoom
         });
         
