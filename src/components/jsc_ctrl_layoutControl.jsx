@@ -37,6 +37,33 @@ class ClssCtrlLayout extends React.Component {
         });
     }
 
+    componentDidMount() {
+        this.m_timer = setInterval(() => {
+            this.setState({ now: new Date() });
+        }, 1000);
+    }
+
+    componentWillUnmount() {
+        if (this.m_timer) clearInterval(this.m_timer);
+    }
+
+    fn_getDateLabel() {
+        return this.state.now.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit'
+        });
+    }
+
+    fn_getTimeLabel() {
+        return this.state.now.toLocaleTimeString(undefined, {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+    }
+
     render() {
         return (
             <div id="main_btn_group" role="group" className="d-flex align-items-center justify-content-end">
