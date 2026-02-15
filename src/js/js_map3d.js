@@ -6,6 +6,7 @@ class CAndruavMap3D {
         this.m_isReady = false;
         this.m_markers = new Map();
         this.m_isVisible = false;
+        this.m_pendingViewState = null;
     }
 
     async fn_loadMapboxSdk() {
@@ -41,6 +42,76 @@ class CAndruavMap3D {
         return window.mapboxgl;
     }
 
+    fn_getBuildingOpacity() {
+        const configured = Number(js_siteConfig.CONST_MAPBOX_3D_BUILDING_OPACITY);
+        if (!Number.isFinite(configured)) return 1.0;
+        return Math.min(1.0, Math.max(0.05, configured));
+    }
+
+    fn_applyTerrain() {
+        if (!this.m_map) return;
+
+        const exaggeration = Number(js_siteConfig.CONST_MAPBOX_TERRAIN_EXAGGERATION);
+        const terrainExaggeration = Number.isFinite(exaggeration) && exaggeration > 0 ? exaggeration : 1.0;
+
+        if (!this.m_map.getSource('mapbox-dem')) {
+            this.m_map.addSource('mapbox-dem', {
+                type: 'raster-dem',
+                url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                tileSize: 512,
+                maxzoom: 14
+            });
+        }
+
+        this.m_map.setTerrain({
+            source: 'mapbox-dem',
+            exaggeration: terrainExaggeration
+        });
+    }
+
+    fn_getFirstSymbolLayerId() {
+        if (!this.m_map) return undefined;
+        const layers = this.m_map.getStyle()?.layers || [];
+        const symbolLayer = layers.find((layer) => layer.type === 'symbol');
+        return symbolLayer?.id;
+    }
+
+    fn_applyBuildings() {
+        if (!this.m_map) return;
+
+        const buildingOpacity = this.fn_getBuildingOpacity();
+        const buildingColor = js_siteConfig.CONST_MAPBOX_3D_BUILDING_COLOR || '#e0e0e0';
+        const beforeLayerId = this.fn_getFirstSymbolLayerId();
+
+        if (!this.m_map.getSource('mapbox-buildings')) {
+            this.m_map.addSource('mapbox-buildings', {
+                type: 'vector',
+                url: 'mapbox://mapbox.mapbox-streets-v8'
+            });
+        }
+
+        if (this.m_map.getLayer('add-3d-buildings')) {
+            this.m_map.setLayoutProperty('add-3d-buildings', 'visibility', 'visible');
+            this.m_map.setPaintProperty('add-3d-buildings', 'fill-extrusion-opacity', buildingOpacity);
+            this.m_map.setPaintProperty('add-3d-buildings', 'fill-extrusion-color', buildingColor);
+            return;
+        }
+
+        this.m_map.addLayer({
+            id: 'add-3d-buildings',
+            source: 'mapbox-buildings',
+            'source-layer': 'building',
+            type: 'fill-extrusion',
+            minzoom: 10,
+            paint: {
+                'fill-extrusion-color': buildingColor,
+                'fill-extrusion-height': ['coalesce', ['get', 'height'], 10],
+                'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0],
+                'fill-extrusion-opacity': buildingOpacity
+            }
+        }, beforeLayerId);
+    }
+
     async fn_initMap(containerId) {
         if (this.m_isReady === true || this.m_map != null) return;
 
@@ -55,39 +126,73 @@ class CAndruavMap3D {
 
         this.m_map = new mapboxgl.Map({
             container: containerId,
-            style: js_siteConfig.CONST_MAPBOX_STYLE || 'mapbox://styles/mapbox/standard',
-            center: [24.767945, 42.144913],
-            zoom: 15.47,
-            pitch: 53,
+            style: js_siteConfig.CONST_MAPBOX_STYLE || 'mapbox://styles/mapbox/standard-satellite',
+            center: [-0.1870, 5.6037],
+            zoom: 11.5,
+            pitch: 45,
             bearing: 0,
             antialias: true
         });
 
         this.m_map.on('style.load', () => {
-            const hasBuildingLayer = this.m_map.getLayer('add-3d-buildings');
-            if (!hasBuildingLayer) {
-                this.m_map.addLayer({
-                    id: 'add-3d-buildings',
-                    source: 'composite',
-                    'source-layer': 'building',
-                    filter: ['==', 'extrude', 'true'],
-                    type: 'fill-extrusion',
-                    minzoom: 15,
-                    paint: {
-                        'fill-extrusion-color': '#aaa',
-                        'fill-extrusion-height': ['get', 'height'],
-                        'fill-extrusion-base': ['get', 'min_height'],
-                        'fill-extrusion-opacity': 0.6
-                    }
-                });
-            }
+            this.fn_applyTerrain();
+            this.fn_applyBuildings();
         });
 
         this.m_map.on('load', () => {
             this.m_isReady = true;
+            if (this.m_pendingViewState) {
+                this.fn_applyViewState(this.m_pendingViewState);
+                this.m_pendingViewState = null;
+            }
             if (this.m_isVisible === true) {
                 this.m_map.resize();
             }
+        });
+    }
+
+    fn_getViewState() {
+        if (!this.m_map || !this.m_isReady) {
+            return {
+                lat: 5.6037,
+                lng: -0.1870,
+                zoom: 11.5,
+                bearing: 0,
+                pitch: 45
+            };
+        }
+
+        const center = this.m_map.getCenter();
+        return {
+            lat: center.lat,
+            lng: center.lng,
+            zoom: this.m_map.getZoom(),
+            bearing: this.m_map.getBearing(),
+            pitch: this.m_map.getPitch()
+        };
+    }
+
+    fn_applyViewState(state) {
+        if (state == null) return;
+
+        if (!this.m_map || !this.m_isReady) {
+            this.m_pendingViewState = state;
+            return;
+        }
+
+        const lat = Number(state.lat);
+        const lng = Number(state.lng);
+        const zoom = Number(state.zoom);
+        const bearing = Number(state.bearing);
+        const pitch = Number(state.pitch);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(zoom)) return;
+
+        this.m_map.jumpTo({
+            center: [lng, lat],
+            zoom,
+            bearing: Number.isFinite(bearing) ? bearing : this.m_map.getBearing(),
+            pitch: Number.isFinite(pitch) ? pitch : this.m_map.getPitch()
         });
     }
 
@@ -98,6 +203,7 @@ class CAndruavMap3D {
 
     fn_hide() {
         this.m_isVisible = false;
+        this.m_pendingViewState = null;
     }
 
     fn_focusUnit(unit) {

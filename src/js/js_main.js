@@ -53,6 +53,7 @@ var v_context_busy = false;
 var info_unit_context_popup = null;
 let selectedMissionFilesToRead = "";
 let selectedMissionFilesToWrite = "";
+let g_lastMap3DViewState = null;
 
 export const setSelectedMissionFilePathToRead = function (p_file_name) {
 	selectedMissionFilesToRead = p_file_name;
@@ -431,15 +432,7 @@ function fn_doGimbalCtrl(unit, pitch, roll, yaw) {
 
 
 export function fn_showVideoMainTab() {
-	$('#div_map_view').hide();
-	$('#div_map3d_view').hide();
-	$('#div_video_control').show();
-
-	js_map3d.fn_hide();
-
-	$('#btn_showMap').show();
-	$('#btn_showMap3D').show();
-	$('#btn_showVideo').hide();
+	$('#div_video_control').toggle();
 }
 
 
@@ -657,37 +650,44 @@ export function fn_showControl(v_small_mode) {
 
 
 export function fn_showMap() {
-	$('#div_video_control').hide();
+	const map3dState = js_map3d.fn_getViewState();
+	g_lastMap3DViewState = map3dState;
+
 	$('#div_map3d_view').hide();
 	$('#div_map_view').show();
 
 	js_map3d.fn_hide();
-
-	$('#btn_showMap').hide();
-	$('#btn_showMap3D').show();
-	$('#btn_showVideo').show();
-
+	js_leafletmap.fn_applyViewState(map3dState);
 	js_leafletmap.fn_invalidateSize();
 }
 
 export function fn_showMap3D() {
-	$('#div_video_control').hide();
+	const map2dState = js_leafletmap.fn_getViewState();
+	if (g_lastMap3DViewState != null) {
+		map2dState.bearing = g_lastMap3DViewState.bearing;
+		map2dState.pitch = g_lastMap3DViewState.pitch;
+	}
+
 	$('#div_map_view').hide();
 	$('#div_map3d_view').show();
 
 	js_map3d.fn_show();
-
-	$('#btn_showMap').show();
-	$('#btn_showMap3D').hide();
-	$('#btn_showVideo').show();
+	js_map3d.fn_applyViewState(map2dState);
 }
 
 export function fn_showSettings() {
-	$('#andruavUnits_in').toggle();
+	const panel = $('#settings_menu_panel');
+	const wasVisible = panel.is(':visible');
+	panel.toggle();
 
-	$([document.documentElement, document.body]).animate({
-		scrollTop: $("#row_2").offset().top
-	}, 100);
+	const isVisible = panel.is(':visible');
+	$('#btn_toggleSettingsChevron').attr('aria-expanded', isVisible ? 'true' : 'false');
+
+	if (wasVisible === false && $('#row_2').length > 0) {
+		$([document.documentElement, document.body]).animate({
+			scrollTop: $("#row_2").offset().top
+		}, 100);
+	}
 }
 
 function onWEBRTCSessionStarted(c_talk) {

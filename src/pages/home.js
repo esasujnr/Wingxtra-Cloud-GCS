@@ -28,7 +28,7 @@ import ClssAndruavUnitListArray from '../components/unit_controls/jsc_unitContro
 import ClssUnitParametersList from '../components/dialogs/jsc_unitParametersList.jsx';
 import ClssConfigGenerator from '../components/jsc_config_generator.jsx'
 import { ClssCVideoControl } from '../components/video/jsc_videoDisplayComponent.jsx';
-import { fn_on_ready } from '../js/js_main';
+import { fn_on_ready, fn_showSettings, fn_showMap, fn_showMap3D, fn_showVideoMainTab } from '../js/js_main';
 
 const Home = () => {
   const { t } = useTranslation('home'); // Use home namespace
@@ -55,6 +55,52 @@ const Home = () => {
               </div>
               <div className="monitorview" id="div_map3d_view" style={{ display: 'none' }}>
                 <div id="mapid3d" className="org_border fullscreen"></div>
+              </div>
+
+              <div id="map_overlay_left_tools" className="css_map_overlay_left_tools">
+                <a
+                  id="btn_missionPlanner"
+                  className="btn btn-sm btn-primary bi bi-sign-turn-slight-right-fill"
+                  href="./mapeditor"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Mission Planner"
+                >
+                  <strong className="ms-1">Plan</strong>
+                </a>
+              </div>
+
+              <div id="map_overlay_right_tools" className="css_map_overlay_right_tools">
+                <button
+                  type="button"
+                  id="btn_showMap"
+                  className="btn btn-danger btn-sm bi bi-map"
+                  title="Show 2D map"
+                  onClick={() => fn_showMap()}
+                >
+                  <strong>2D Map</strong>
+                </button>
+                <button
+                  type="button"
+                  id="btn_showMap3D"
+                  className="btn btn-secondary btn-sm bi bi-badge-3d"
+                  title="Show 3D map"
+                  onClick={() => fn_showMap3D()}
+                >
+                  <strong>3D Map</strong>
+                </button>
+              </div>
+
+              <div id="map_overlay_bottom_left_tools" className="css_map_overlay_bottom_left_tools">
+                <button
+                  type="button"
+                  id="btn_showVideo"
+                  className="btn btn-warning btn-sm bi bi-camera-fill"
+                  title="Overlay camera"
+                  onClick={() => fn_showVideoMainTab()}
+                >
+                  <strong>CAMERA</strong>
+                </button>
               </div>
               <div className="cameraview" id="div_video_control">
                 <ClssCVideoControl />
@@ -119,14 +165,25 @@ const Home = () => {
         </div>
 
         <div id="row_2" className="col-lg-4 col-xl-4 col-xxl-4 col-12">
+          <div id="settings_panel_toggle_wrap" className="text-center">
+            <button
+              type="button"
+              id="btn_toggleSettingsChevron"
+              className="btn btn-sm btn-primary txt-theme-aware border-light"
+              title="Show/Hide settings panel"
+              onClick={() => fn_showSettings()}
+            >
+              <strong>^</strong>
+            </button>
+          </div>
           <div id="andruavUnits" className="col-sm-12 padding_zero">
-            <div id="andruavUnits_in" className="">
+            <div id="settings_menu_panel" className="">
               <ClssGlobalSettings />
               <div id="andruavUnitGlobals"></div>
-              <p className="bg-warning text-center css_margin_top_small">
-                <strong>{t('home:onlineUnits')}</strong>
-              </p>
             </div>
+            <p className="bg-warning text-center css_margin_top_small">
+              <strong>{t('home:onlineUnits')}</strong>
+            </p>
             <div id="guiMessageCtrl" className="row"></div>
             <div id="andruavUnitList" className="row">
               <ClssAndruavUnitList
