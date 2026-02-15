@@ -16,6 +16,8 @@ class CAndruavMap3D {
 
         this.m_plannerCreateEnabled = false;
         this.m_plannerCreateWaypointHandler = null;
+        this.m_plannerSelectWaypointHandler = null;
+        this.m_missionLayerHandlersBound = false;
     }
 
     async fn_loadMapboxSdk() {
@@ -139,7 +141,7 @@ class CAndruavMap3D {
                 id: this.m_missionLineLayerId,
                 type: 'line',
                 source: this.m_missionSourceId,
-                filter: ['==', ['geometry-type'], 'LineString'],
+                filter: ['==', '$type', 'LineString'],
                 paint: {
                     'line-color': ['coalesce', ['get', 'color'], '#00d1b2'],
                     'line-width': ['case', ['boolean', ['get', 'active'], false], 4.5, 3],
@@ -153,7 +155,7 @@ class CAndruavMap3D {
                 id: this.m_missionPointLayerId,
                 type: 'circle',
                 source: this.m_missionSourceId,
-                filter: ['==', ['geometry-type'], 'Point'],
+                filter: ['==', '$type', 'Point'],
                 paint: {
                     'circle-radius': ['case', ['boolean', ['get', 'active'], false], 7, 5],
                     'circle-color': ['coalesce', ['get', 'color'], '#00d1b2'],
@@ -163,10 +165,40 @@ class CAndruavMap3D {
             });
         }
 
+        this.fn_bindMissionLayerInteractions();
+
         if (this.m_pendingMissionGeoJson) {
             this.fn_applyMissionGeoJson(this.m_pendingMissionGeoJson);
             this.m_pendingMissionGeoJson = null;
         }
+    }
+
+
+    fn_bindMissionLayerInteractions() {
+        if (!this.m_map) return;
+        if (this.m_missionLayerHandlersBound === true) return;
+        if (!this.m_map.getLayer(this.m_missionPointLayerId)) return;
+
+        this.m_map.on('click', this.m_missionPointLayerId, (event) => {
+            if (typeof this.m_plannerSelectWaypointHandler !== 'function') return;
+
+            const feature = event?.features?.[0];
+            const missionId = feature?.properties?.missionId;
+            const order = Number(feature?.properties?.order);
+            if (missionId == null || !Number.isFinite(order) || order <= 0) return;
+
+            this.m_plannerSelectWaypointHandler({ missionId, order });
+        });
+
+        this.m_map.on('mouseenter', this.m_missionPointLayerId, () => {
+            this.m_map.getCanvas().style.cursor = 'pointer';
+        });
+
+        this.m_map.on('mouseleave', this.m_missionPointLayerId, () => {
+            this.m_map.getCanvas().style.cursor = '';
+        });
+
+        this.m_missionLayerHandlersBound = true;
     }
 
     fn_applyMissionGeoJson(geojson) {
@@ -252,6 +284,11 @@ class CAndruavMap3D {
 
     fn_setPlannerCreateWaypointHandler(handler) {
         this.m_plannerCreateWaypointHandler = handler;
+    }
+
+
+    fn_setPlannerSelectWaypointHandler(handler) {
+        this.m_plannerSelectWaypointHandler = handler;
     }
 
     fn_enablePlannerCreateWaypoint(enabled) {

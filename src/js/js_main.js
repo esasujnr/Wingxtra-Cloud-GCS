@@ -56,6 +56,22 @@ let selectedMissionFilesToRead = "";
 let selectedMissionFilesToWrite = "";
 let g_lastMap3DViewState = null;
 
+
+function fn_selectPlannerWaypointFrom3D(payload) {
+	if (payload == null) return;
+	const missionId = Number(payload.missionId);
+	const order = Number(payload.order);
+	if (!Number.isFinite(missionId) || !Number.isFinite(order)) return;
+
+	const mission = js_mapmission_planmanager.m_missionPlans?.[missionId];
+	if (!mission || !Array.isArray(mission.m_all_mission_items_shaps)) return;
+
+	const shape = mission.m_all_mission_items_shaps.find((m) => Number(m.order) === order);
+	if (!shape) return;
+
+	js_eventEmitter.fn_dispatch(js_event.EE_onShapeSelected, shape);
+}
+
 function fn_syncPlannerMissionIn3D() {
 	if (js_globals.CONST_MAP_EDITOR !== true) return;
 	if (!js_mapmission_planmanager || !js_mapmission_planmanager.m_missionPlans) return;
@@ -642,6 +658,9 @@ export function fn_showMap3D() {
 
 	js_map3d.fn_show();
 	js_map3d.fn_applyViewState(map2dState);
+	if (js_globals.CONST_MAP_EDITOR === true) {
+		fn_syncPlannerMissionIn3D();
+	}
 	const btn = $('#btn_toggleMapMode');
 	if (btn.length > 0) {
 		btn.removeClass('btn-secondary bi-badge-3d').addClass('btn-danger bi-map');
@@ -3364,6 +3383,7 @@ export function fn_on_ready() {
 			js_leafletmap.fn_addMarkerManually([loc.lat, loc.lng], js_leafletmap);
 		});
 		js_map3d.fn_enablePlannerCreateWaypoint(true);
+		js_map3d.fn_setPlannerSelectWaypointHandler(fn_selectPlannerWaypointFrom3D);
 
 		js_eventEmitter.fn_subscribe(js_event.EE_mapMissionUpdate, this, fn_syncPlannerMissionIn3D);
 		js_eventEmitter.fn_subscribe(js_event.EE_onPlanToggle, this, fn_syncPlannerMissionIn3D);
