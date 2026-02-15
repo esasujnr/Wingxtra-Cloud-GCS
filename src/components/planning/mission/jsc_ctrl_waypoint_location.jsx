@@ -2,6 +2,8 @@ import React    from 'react';
 
 import {OpenElevationAPI} from '../../../js/js_open_elevation.js'
 import { mavlink20, MAVLink20Processor } from '../../../js/js_mavlink_v2.js'
+import {EVENTS as js_event} from '../../../js/js_eventList.js'
+import { js_eventEmitter } from '../../../js/js_eventEmitter.js';
 
 
 export class CWayPointLocation extends React.Component {
@@ -23,15 +25,46 @@ export class CWayPointLocation extends React.Component {
     { 
     }
 
+
+
+    fn_notifyShapeEdited() {
+        if (!this.props.p_shape) return;
+        js_eventEmitter.fn_dispatch(js_event.EE_onShapeEdited, this.props.p_shape);
+    }
+
     handleLatChange = (e) => {
+        const lat = Number(e.target.value);
+        const lng = Number(this.props.p_shape.getLatLng().lng);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            this.props.p_shape.setLatLng({ lat, lng });
+            if (this.props.p_shape?.m_main_de_mission) {
+                this.props.p_shape.m_main_de_mission.fn_updatePath(true);
+            }
+            this.fn_notifyShapeEdited();
+        }
         this.setState({ lat: e.target.value });
     }
 
     handleLngChange = (e) => {
+        const lng = Number(e.target.value);
+        const lat = Number(this.props.p_shape.getLatLng().lat);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            this.props.p_shape.setLatLng({ lat, lng });
+            if (this.props.p_shape?.m_main_de_mission) {
+                this.props.p_shape.m_main_de_mission.fn_updatePath(true);
+            }
+            this.fn_notifyShapeEdited();
+        }
         this.setState({ lng: e.target.value });
     }
     
     handleAltChange = (e) => {
+        const value = Number(e.target.value);
+        this.props.p_shape.m_missionItem.alt = Number.isFinite(value) ? value : 0;
+        if (this.props.p_shape?.m_main_de_mission) {
+            this.props.p_shape.m_main_de_mission.fn_updatePath(true);
+        }
+        this.fn_notifyShapeEdited();
         this.setState({ alt: e.target.value });
     }
     
@@ -89,6 +122,7 @@ export class CWayPointLocation extends React.Component {
         }
 
         this.m_baltRef.current.innerText = this.fn_getAltitudeLabel(this.props.p_shape.m_missionItem.m_frameType);
+        this.fn_notifyShapeEdited();
     }
 
     fn_editShape ()
@@ -116,6 +150,7 @@ export class CWayPointLocation extends React.Component {
         // }
 
         this.m_baltRef.current.innerText = this.fn_getAltitudeLabel(this.props.p_shape.m_missionItem.m_frameType);
+        this.fn_notifyShapeEdited();
     }
 
     render ()
