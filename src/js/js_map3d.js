@@ -288,6 +288,11 @@ class CAndruavMap3D {
         this.fn_clearAltitudePathOverlay();
     }
 
+    // Backward compatibility for older bundled listeners that may still call this name.
+    fn_scheduleAltitudePathOverlayRender() {
+        this.fn_refreshAltitudeVisuals();
+    }
+
     fn_setMissionBaseLayerVisibility(isVisible) {
         if (!this.m_map) return;
 
@@ -586,6 +591,29 @@ class CAndruavMap3D {
                 this.fn_setMissionBaseLayerVisibility(false);
                 this.fn_refreshAltitudeVisuals();
             }
+        });
+
+        this.m_map.on('click', (event) => {
+            if (this.m_plannerCreateEnabled !== true || typeof this.m_plannerCreateWaypointHandler !== 'function') {
+                return;
+            }
+
+            if (event?.originalEvent?.shiftKey !== true) {
+                return;
+            }
+
+            this.m_plannerCreateWaypointHandler({
+                lat: event.lngLat.lat,
+                lng: event.lngLat.lng
+            });
+        });
+
+        this.m_map.on('move', () => {
+            this.fn_refreshAltitudeVisuals();
+        });
+
+        this.m_map.on('render', () => {
+            this.fn_refreshAltitudeVisuals();
         });
 
         this.m_map.on('click', (event) => {
