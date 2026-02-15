@@ -56,6 +56,14 @@ let selectedMissionFilesToRead = "";
 let selectedMissionFilesToWrite = "";
 let g_lastMap3DViewState = null;
 
+let g_flyViewMissionPlans3D = {};
+
+function fn_syncFlyViewMissionsIn3D() {
+	if (js_globals.CONST_MAP_EDITOR === true) return;
+	js_map3d.fn_syncMissionPlans(g_flyViewMissionPlans3D, null);
+}
+
+
 
 function fn_selectPlannerWaypointFrom3D(payload) {
 	if (payload == null) return;
@@ -660,6 +668,8 @@ export function fn_showMap3D() {
 	js_map3d.fn_applyViewState(map2dState);
 	if (js_globals.CONST_MAP_EDITOR === true) {
 		fn_syncPlannerMissionIn3D();
+	} else {
+		fn_syncFlyViewMissionsIn3D();
 	}
 	const btn = $('#btn_toggleMapMode');
 	if (btn.length > 0) {
@@ -2165,6 +2175,7 @@ var EVT_onDeleted = function () {
 	js_globals.v_andruavClient = null;
 	js_globals.v_andruavFacade = null;
 	js_globals.v_andruavWS = null;
+	g_flyViewMissionPlans3D = {};
 
 };
 
@@ -2231,6 +2242,7 @@ var EVT_msgFromUnit_WayPoints = function (me, data) {
 
 	const p_andruavUnit = data.unit;
 	const wayPointArray = data.wps;
+	const unitMission3DShapes = [];
 
 
 	// TODO HERE >>> DELETE OLD WAYPOINTS AND HIDE THEM FROM MAP
@@ -2238,7 +2250,11 @@ var EVT_msgFromUnit_WayPoints = function (me, data) {
 
 	deleteWayPointsofDrone(p_andruavUnit, wayPointArray);
 
-	if (wayPointArray.length === 0) return;
+	if (wayPointArray.length === 0) {
+		delete g_flyViewMissionPlans3D[p_andruavUnit.getPartyID()];
+		fn_syncFlyViewMissionsIn3D();
+		return;
+	}
 	let latlng = null;
 	for (let i = 0; i < wayPointArray.length; ++i) {
 		let subIcon = false;
@@ -2340,6 +2356,17 @@ var EVT_msgFromUnit_WayPoints = function (me, data) {
 
 			if (subIcon === false) {
 				LngLatPoints.push(latlng);
+				const c_lat = Number(latlng.lat);
+				const c_lng = Number(latlng.lng);
+				const c_alt = Number(wayPointStep.Altitude);
+				const c_order = Number(wayPointStep.m_Sequence) + 1;
+				if (Number.isFinite(c_lat) && Number.isFinite(c_lng)) {
+					unitMission3DShapes.push({
+						order: c_order,
+						m_missionItem: { alt: Number.isFinite(c_alt) ? c_alt : 0 },
+						getLatLng: function () { return { lat: c_lat, lng: c_lng }; }
+					});
+				}
 			}
 		}
 
@@ -2349,6 +2376,13 @@ var EVT_msgFromUnit_WayPoints = function (me, data) {
 	if (LngLatPoints.length > 0) {
 		p_andruavUnit.m_wayPoint.polylines = js_leafletmap.fn_drawMissionPolyline(LngLatPoints, js_globals.flightPath_colors[p_andruavUnit.m_index % 4]);
 	}
+
+	g_flyViewMissionPlans3D[p_andruavUnit.getPartyID()] = {
+		m_id: p_andruavUnit.getPartyID(),
+		m_pathColor: '#32CD32',
+		m_all_mission_items_shaps: unitMission3DShapes
+	};
+	fn_syncFlyViewMissionsIn3D();
 }
 
 

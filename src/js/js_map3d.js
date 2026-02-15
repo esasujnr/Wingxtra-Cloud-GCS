@@ -177,6 +177,8 @@ class CAndruavMap3D {
             });
         }
 
+        this.fn_setMissionBaseLayerVisibility(this.m_isVisible !== true);
+
         this.fn_bindMissionLayerInteractions();
 
         if (this.m_pendingMissionGeoJson) {
@@ -582,6 +584,15 @@ class CAndruavMap3D {
                 this.fn_setMissionBaseLayerVisibility(false);
                 this.fn_scheduleAltitudePathOverlayRender();
             }
+
+            this.m_plannerCreateWaypointHandler({
+                lat: event.lngLat.lat,
+                lng: event.lngLat.lng
+            });
+        });
+
+        this.m_map.on('move', () => {
+            this.fn_scheduleAltitudePathOverlayRender();
         });
 
         this.m_map.on('click', (event) => {
@@ -600,6 +611,11 @@ class CAndruavMap3D {
         });
 
         this.m_map.on('move', () => {
+            this.fn_scheduleAltitudePathOverlayRender();
+        });
+
+        this.m_map.on('render', () => {
+            if (this.m_isVisible !== true) return;
             this.fn_scheduleAltitudePathOverlayRender();
         });
 
