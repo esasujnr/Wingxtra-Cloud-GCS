@@ -110,6 +110,28 @@ class CAndruavAuth {
     }
 
     /**
+     * Gets the current access code used during login.
+     * @returns {string} Access code or empty string.
+     */
+    fn_getAccessCode() {
+        return this.m_accesscode || '';
+    }
+
+    /**
+     * Gets the best-effort authorization header value for authenticated API forwarding.
+     * @returns {string|null} Authorization header value (e.g. Bearer <token>) or null.
+     */
+    fn_getAuthorizationHeaderValue() {
+        const sessionId = this.fn_getSessionID();
+        if (sessionId) return `Bearer ${sessionId}`;
+
+        const accessCode = this.fn_getAccessCode();
+        if (accessCode) return `Bearer ${accessCode}`;
+
+        return null;
+    }
+
+    /**
      * Checks if the user is logged in.
      * @returns {boolean} True if logged in, false otherwise.
      */

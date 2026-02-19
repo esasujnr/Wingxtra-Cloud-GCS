@@ -1,4 +1,8 @@
+import * as js_siteConfig from '../js_siteConfig.js';
+import { js_andruavAuth } from '../js_andruav_auth.js';
+
 const DELIVERY_SERVICE_BASE_URL = (process.env.REACT_APP_WINGXTRA_DELIVERY_SERVICE_URL || '').replace(/\/$/, '');
+const DELIVERY_OPS_API_KEY = process.env.REACT_APP_WINGXTRA_DELIVERY_OPS_API_KEY || '';
 
 function fn_buildUrl(path, query = {}) {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -20,6 +24,25 @@ function fn_unwrapPayload(payload) {
     return payload.items || payload.data || payload.results || payload.orders || payload.jobs || payload;
 }
 
+function fn_buildAuthHeaders() {
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+
+    const authorizationHeader = js_andruavAuth.fn_getAuthorizationHeaderValue();
+    if (authorizationHeader) {
+        headers.Authorization = authorizationHeader;
+        return headers;
+    }
+
+    const fallbackApiKey = DELIVERY_OPS_API_KEY || js_andruavAuth.fn_getPluginApiKey() || js_siteConfig.CONST_WEBCONNECTOR_APIKEY;
+    if (fallbackApiKey) {
+        headers['x-de-api-key'] = fallbackApiKey;
+    }
+
+    return headers;
+}
+
 async function fn_deliveryRequest(path, { method = 'GET', body, query } = {}) {
     if (!DELIVERY_SERVICE_BASE_URL) {
         throw new Error('Delivery service URL is not configured. Set REACT_APP_WINGXTRA_DELIVERY_SERVICE_URL.');
@@ -27,9 +50,7 @@ async function fn_deliveryRequest(path, { method = 'GET', body, query } = {}) {
 
     const res = await fetch(fn_buildUrl(path, query), {
         method,
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: fn_buildAuthHeaders(),
         body: body ? JSON.stringify(body) : undefined
     });
 
