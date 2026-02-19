@@ -17,6 +17,7 @@ async function fn_startApp() {
   const NoPage = (await import('./pages/NoPage')).default;
   const GamePadTesterPage = (await import('./pages/gamepadTester')).default;
   const DebugPage = (await import('./pages/debug')).default;
+  const DeliveryPage = (await import('./pages/delivery')).default;
 
 
   function App2() {
@@ -33,6 +34,7 @@ async function fn_startApp() {
             <Route path="mapeditor" element={<Planning />} />
             <Route path="gamepad" element={<GamePadTesterPage />} />
             <Route path="debug" element={<DebugPage />} />
+            <Route path="delivery/*" element={<DeliveryPage />} />
             <Route path="*" element={<NoPage />} />
           </Route>
         </Routes>

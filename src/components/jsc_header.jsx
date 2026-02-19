@@ -16,7 +16,6 @@ class ClssHeaderControl extends React.Component {
 
     render() {
 
-        const { t } = this.props; // Access t function
         let ctrl = [];
         if (this.props.no_layout_ctrl !== null && this.props.no_layout_ctrl !== undefined) {
             ctrl.push(
@@ -54,7 +53,14 @@ class ClssHeaderControl extends React.Component {
                             {js_siteConfig.CONST_TITLE}
                         </a>
                         <div className="collapse navbar-collapse" id="navbarNav">
-                            <ul className="navbar-nav"></ul>
+                            <ul className="navbar-nav">
+                                <li className="nav-item">
+                                    <a className="nav-link" href="./">Operations</a>
+                                </li>
+                                <li className="nav-item">
+                                    <a className="nav-link" href="./delivery/orders">Delivery</a>
+                                </li>
+                            </ul>
                         </div>
                     </nav>
                 </div>
